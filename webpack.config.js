@@ -1,4 +1,5 @@
 const CopyPlugin = require('copy-webpack-plugin');
+const { webpack: alias } = require('./aliases');
 
 const path = require('path');
 
@@ -23,8 +24,7 @@ const config = {
     }),
   ],
   resolve: {
-    alias: {
-    },
+    alias,
   },
   module: {
     rules: [
