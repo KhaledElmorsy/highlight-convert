@@ -1,5 +1,6 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const { webpack: alias } = require('./aliases');
+const ChromeReloadPlugin = require('./ChromeReloadPlugin');
 
 const path = require('path');
 
@@ -22,6 +23,7 @@ const config = {
     new CopyPlugin({
       patterns: [{ from: '../static', to: '' }],
     }),
+    new ChromeReloadPlugin({ port: 1776 }),
   ],
   resolve: {
     alias,
