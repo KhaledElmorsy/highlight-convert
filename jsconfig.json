@@ -3,6 +3,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@util/*": ["src/util/*"],
+      "@converters/*": ["src/converters/*"]
     }
   },
   "exclude": ["node_modules", "**/node_modules/*"]
