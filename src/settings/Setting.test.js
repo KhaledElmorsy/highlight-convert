@@ -1,5 +1,5 @@
 import Setting from './Setting';
-import storage from '@util/chrome/storage/__mocks__/storage';
+import storage from '@mocks/chrome/storage/storage';
 import setupCompletion from './test-utils/setupCompletion';
 
 const area = 'sync';

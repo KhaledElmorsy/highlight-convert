@@ -1,5 +1,5 @@
 import Picker from '../Picker';
-import storage from '@/util/chrome/storage/__mocks__/storage'; // Mock chrome.storage
+import storage from '@mocks/chrome/storage/storage'; // Mock chrome.storage
 import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';

@@ -1,5 +1,5 @@
 import StorageItem from '../StorageItem';
-import storage from '../__mocks__/storage';
+import storage from '@mocks/chrome/storage/storage';
 
 const key = 'test.path';
 

@@ -1,5 +1,5 @@
 import Toggle from '../Toggle';
-import storage from '@/util/chrome/storage/__mocks__/storage';
+import storage from '@mocks/chrome/storage/storage';
 import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';

@@ -4,7 +4,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@util/*": ["src/util/*"],
-      "@converters/*": ["src/converters/*"]
+      "@converters/*": ["src/converters/*"],
+      "@mocks/*": ["__mocks__/*"]
     }
   },
   "exclude": ["node_modules", "**/node_modules/*"]
