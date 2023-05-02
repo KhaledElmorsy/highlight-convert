@@ -1,5 +1,4 @@
 import Range from '../Range';
-import storage from '@mocks/chrome/storage/storage';
 import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';
@@ -12,12 +11,12 @@ describe('constructor():', () => {
     expect(() => new Range({ ...path, options: validRange })).not.toThrow();
 
     const invalidRanges = [
-      { min: 10, max: 0, step: 2 }, // max < min
-      { min: 10, max: 10, step: 4 }, // max == min
-      { min: 0, max: 10, step: 20 }, // step > (max - min)
-      { min: 0, max: 10, step: 0 }, // step == 0
-      { min: 0, max: 10, step: -2 }, // step < 0
-      { min: 0, max: 10, step: 3 }, // Imperfect width: (max - min)%step !== 0
+      { min: 10, max: 0, step: 2 },   // max < min
+      { min: 10, max: 10, step: 4 },  // max == min
+      { min: 0, max: 10, step: 20 },  // step > (max - min)
+      { min: 0, max: 10, step: 0 },   // step == 0
+      { min: 0, max: 10, step: -2 },  // step < 0
+      { min: 0, max: 10, step: 3 },   // Crossed threshold: (max - min)%step !== 0
     ];
     invalidRanges.forEach((range) => {
       expect(() => new Range({ ...path, options: range })).toThrow();

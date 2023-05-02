@@ -1,8 +1,8 @@
-import Setting from '../Setting';
+import Controller from "../Controller/Controller"; 
 let setupSpy;
 
 beforeEach(() => {
-  setupSpy = jest.spyOn(Setting.prototype, 'setup');
+  setupSpy = jest.spyOn(Controller.prototype, 'setup');
 });
 
 /**

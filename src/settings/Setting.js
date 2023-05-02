@@ -1,84 +1,46 @@
-import { StorageItem } from '@util/chrome/storage';
-
+/** @template {Controller} T */
 export default class Setting {
+  /** Name used when rendering the setting @type {string} */
+  name;
+  /** Description used for tooltips. @type {string} */
+  description;
+  /** Value controller and validator. @type {Controller} */
+  controller;
+  /** Invoked after the setting is updated. @type {(newValue: any) => any} */
+  onChange;
+  /** Associated data @type {{[x: symbol]: any}} */
+  data;
+
   /**
-   * Create a setting and store it with Chrome's storage api
-   * @template T, O
+   * Main `Setting` class providing configurable & mutable stored values and associated
+   * data to other classes in the extension.
    * @param {object} args
-   * @param {SettingPath[key]} args.key qweqwe
-   * @param {SettingPath[area]} args.area
-   * @param {O} args.options
-   * @param {T} args.defaultValue
+   * @param {string} args.name
+   * @param {string} [args.description]
+   * @param {T} args.controller Value controller/validator.
+   * @param {(newValue: any) => void} [args.onChange] Invoked when the setting is updated.
+   * @param {object} [args.data] Data associated with the setting.
+   * @param {(setting: Setting) => HTMLElement} [args.view] Override the default setting view
    */
-  constructor({ area, key, options, defaultValue }) {
-    this.storage = new StorageItem(key, chrome.storage[area]);
-    this.setup(options, defaultValue);
+  constructor(args = { description: '', onChange: () => {}, data: {} }) {
+    Object.assign(this, args);
   }
 
-  /**
-   * Change the value of the setting.
-   * 
-   * The new value must be valid.
-   * @param {T} value
-   */
-  async set(value) {
-    if (!this.validate(value)) {
-      throw new Error('Attempting to set an invalid value', this, value);
-    }
-    await this.storage.set({ options: this.options, value });
-  }
+  async set(newValue) {
+    try {
+      await this.controller.set(newValue);
 
-  /**
-   * Validate if a value is a valid option.
-   * @param {O} options
-   * @param {T} value
-   * @returns {boolean}
-   */
-  validate(value, options = this.options) {
-    return true;
-  }
-
-  /**
-   * Create or update the storage item for the setting
-   * @param {O} options
-   * @param {T} defaultValue Value to initialize the setting with
-   */
-  async setup(options, defaultValue) {
-    const withOptions = options !== undefined;
-
-    const value = this.validate(defaultValue, options) ? defaultValue : null;
-
-    const state = await this.storage.get();
-    if (state === undefined) {
-      await this.storage.set({
-        options: withOptions ? options : null,
-        value,
-      });
-    } else {
-      // Update options if they've changed
-      const setOptions =
-        withOptions &&
-        JSON.stringify(options) !== JSON.stringify(state.options);
-
-      if (setOptions) {
-        // Change value to passed default if the current one is now invalid
-        const shouldUpdateValue = !this.validate(state.value, options);
-
-        await this.storage.set({
-          options,
-          value: shouldUpdateValue ? value : state.value,
-        });
+      try {
+        this.onChange(newValue);
+      } catch (onChangeError) {
+        console.error(onChangeError);
       }
+    } catch (valueError) {
+      console.error(valueError);
     }
-    this.options = options; // Synchronously accessible options since options are static by default
   }
 
-  /**
-   * Get the current value of the setting.
-   * @returns {T}
-   */
   async get() {
-    const state = await this.storage.get();
-    return state.value;
+    return this.controller.get();
   }
 }

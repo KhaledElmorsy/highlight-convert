@@ -1,6 +1,6 @@
-import Setting from '../Setting';
+import Controller from "../Controller";
 
-export default class Range extends Setting {
+export default class Range extends Controller {
   /**
    * Basic number range setting.
    * @param {object} args

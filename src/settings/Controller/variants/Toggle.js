@@ -1,6 +1,6 @@
-import Setting from '../Setting';
+import Controller from "../Controller";
 
-export default class Toggle extends Setting {
+export default class Toggle extends Controller {
   /**
    * Toggleable boolean setting
    * @param {object} args

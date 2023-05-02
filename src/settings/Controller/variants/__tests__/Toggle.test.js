@@ -10,17 +10,13 @@ describe('constructor():', () => {
   it('Sets default value if passed', async () => {
     new Toggle({ ...defaultSetup, defaultValue: false });
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({
-      [key]: expect.objectContaining({ value: false }),
-    });
+    expect(storage.sync.set).toHaveBeenCalledWith({ [key]: false });
   });
-  
+
   it('Sets value to "true" by default if one isnt passed', async () => {
     new Toggle(defaultSetup);
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({
-      [key]: expect.objectContaining({ value: true }),
-    });
+    expect(storage.sync.set).toHaveBeenCalledWith({ [key]: true });
   });
 });
 
@@ -43,12 +39,12 @@ describe('toggle():', () => {
     const toggle = new Toggle(defaultSetup);
     await setupCompletion();
 
-    for(let initialVal of [true, false]) {
-      storage.sync.get.mockReturnValueOnce({[key]: {value: initialVal}});
+    for (let initialVal of [true, false]) {
+      storage.sync.get.mockReturnValueOnce({ [key]: initialVal });
       await toggle.toggle();
       expect(storage.sync.set).toHaveBeenCalledWith({
-        [key]: expect.objectContaining({value: !initialVal})
-      })
+        [key]: !initialVal,
+      });
     }
   });
 });
