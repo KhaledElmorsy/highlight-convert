@@ -12,7 +12,4 @@
 
 /**
  * @typedef {import('./Controller/Controller').default} Controller
- * @typedef {import('./Controller/variants/Picker').default} Controller.Picker
- * @typedef {import('./Controller/variants/Range').default} Controller.Range
- * @typedef {import('./Controller/variants/Toggle').default} Controller.Toggle
  */

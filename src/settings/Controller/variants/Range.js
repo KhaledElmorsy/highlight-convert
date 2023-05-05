@@ -1,12 +1,13 @@
 import Controller from "../Controller";
 
+/** @extends Controller<number> */
 export default class Range extends Controller {
   /**
    * Basic number range setting.
    * @param {object} args
    * @param {SettingPath[key]} args.key
    * @param {SettingPath[area]} args.area
-   * @param {{min: number, max: number, step: number}} args.options
+   * @param {NumberRange} args.options
    * @param {number} [args.defaultValue]
    */
   constructor({ area, key, options, defaultValue = options.min }) {

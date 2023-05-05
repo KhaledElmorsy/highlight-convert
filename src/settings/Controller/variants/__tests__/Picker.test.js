@@ -4,13 +4,13 @@ import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';
 const area = 'sync';
-const defaultValue = 0;
 const options = [
   { name: 'Khaled', settings: { darkMode: false } },
   { name: 'Jeff', settings: { darkMode: true } },
   { name: 'Steve', settings: { darkMode: false } },
 ];
-const defaultSetup = { area, key, defaultValue, options };
+const defaultValue = options[0];
+export const defaultSetup = { area, key, defaultValue, options };
 
 afterEach(jest.clearAllMocks);
 
@@ -26,14 +26,13 @@ describe('constructor():', () => {
 });
 
 describe('validate():', () => {
-  it('Returns true only when the value (index) is within the options array range', () => {
+  it('Returns true if a value is in the options array', async () => {
     const picker = new Picker(defaultSetup);
-    const length = options.length;
+    await setupCompletion();
     const tests = [
-      [0, true],
-      [-1, false],
-      [length - 1, true],
-      [length, false],
+      [{ name: 'Jeff', settings: { darkMode: true } }, true],
+      [{ settings: { darkMode: true }, name: 'Jeff' }, false], // Property order matters
+      ['No', false],
     ];
 
     tests.forEach(([value, expected]) => {
@@ -42,28 +41,13 @@ describe('validate():', () => {
   });
 });
 
-describe('getters:', () => {
-  const index = 1;
-  let picker;
+describe('get():', () => {
+  it('Returns the selected option at the current index value', async () => {
+    const picker = new Picker(defaultSetup);
+    await setupCompletion();
 
-  beforeAll(() => {
-    storage.sync.get.mockResolvedValue({ [key]: index });
-    picker = new Picker(defaultSetup);
-  });
-
-  describe('get():', () => {
-    it('Returns the selected option at the current index value', async () => {
-      expect(await picker.get()).toBe(options[index]);
-    });
-  });
-
-  describe('getIndex():', () => {
-    it('Returns the current index value', async () => {
-      expect(await picker.getIndex()).toBe(index);
-    });
-
-    afterAll(() => {
-      storage.sync.get.mockReset();
-    });
+    const value = options[1];
+    storage.sync.get.mockResolvedValueOnce({ [key]: value });
+    expect(await picker.get()).toBe(value);
   });
 });

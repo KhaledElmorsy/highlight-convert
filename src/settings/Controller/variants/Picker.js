@@ -1,19 +1,20 @@
-import Controller from '../Controller';
+import BasePicker from './baseClass/BasePicker';
 
-export default class Picker extends Controller {
+/**
+ * @template T
+ * @extends BasePicker<T>
+ */
+export default class Picker extends BasePicker {
   /**
-   * @template T
-   * Basic picker with an array of options and a single picked value.
+   * Pick a single item from an array of options.
+   * @template {T[]} Options
    * @param {object} args
    * @param {SettingPath[key]} args.key
    * @param {SettingPath[area]} args.area
-   * @param {T[]} args.options
-   * @param {number} [args.defaultValue = 0] Index of the default pick. `Default = 0`
-   */
-  constructor({ area, key, options, defaultValue = 0 }) {
-    if (!Array.isArray(options)) {
-      throw new Error('Options must be an array of values', { options });
-    }
+   * @param {Options} args.options
+   * @param {Value} args.defaultValue
+  */
+ constructor({ area, key, options, defaultValue}) {
     super({ area, key, options, defaultValue });
   }
 
@@ -23,15 +24,6 @@ export default class Picker extends Controller {
    * @returns {boolean}
    */
   validate(value) {
-    return value >= 0 && value < this.options.length;
-  }
-
-  /**
-   * Get the option associated with the current selected value
-   * @returns {Promise<T>}
-   */
-  async get() {
-    const index = await super.get();
-    return this.options[index];
+    return this.validateItem(value);
   }
 }

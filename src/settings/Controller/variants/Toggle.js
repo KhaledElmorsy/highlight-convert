@@ -1,5 +1,6 @@
 import Controller from "../Controller";
 
+/** @extends Controller<boolean> */
 export default class Toggle extends Controller {
   /**
    * Toggleable boolean setting

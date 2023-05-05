@@ -16,7 +16,7 @@ describe('constructor():', () => {
       { min: 0, max: 10, step: 20 },  // step > (max - min)
       { min: 0, max: 10, step: 0 },   // step == 0
       { min: 0, max: 10, step: -2 },  // step < 0
-      { min: 0, max: 10, step: 3 },   // Crossed threshold: (max - min)%step !== 0
+      { min: 0, max: 10, step: 3 },   // Width is divisible by step: (max - min)%step !== 0
     ];
     invalidRanges.forEach((range) => {
       expect(() => new Range({ ...path, options: range })).toThrow();

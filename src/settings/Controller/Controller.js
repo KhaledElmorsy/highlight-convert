@@ -1,10 +1,11 @@
 import { StorageItem } from '@util/chrome/storage';
 
+/** @template T */
 export default class Controller {
   /**
    * Create a mutable value with instance specific options, class validation,
    * and is stored with Chrome's storage api.
-   * @template T, O
+   * @template O
    * @param {object} args
    * @param {SettingPath[key]} args.key
    * @param {SettingPath[area]} args.area
