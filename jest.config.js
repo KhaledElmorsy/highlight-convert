@@ -1,9 +1,7 @@
 const { jest: aliases } = require('./aliases');
 
 module.exports = {
-  setupFilesAfterEnv: [
-    '<rootDir>/__mocks__/chrome/chrome.js'
-  ],
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
   moduleNameMapper: {
     ...aliases,
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':

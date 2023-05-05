@@ -1,5 +1,7 @@
 import storage from "./storage/storage";
 
-global.chrome = {
+const chrome =  {
   storage
 }
+
+export default chrome;

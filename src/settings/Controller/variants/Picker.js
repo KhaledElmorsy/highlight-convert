@@ -34,9 +34,4 @@ export default class Picker extends Controller {
     const index = await super.get();
     return this.options[index];
   }
-
-  /** @returns {Promise<number>} */
-  async getIndex() {
-    return await super.get();
-  }
 }
