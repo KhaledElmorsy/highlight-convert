@@ -1,4 +1,4 @@
-import { StorageItem } from '@/util/chrome/storage';
+import { StorageItem } from '@util/chrome/storage';
 
 export const key = 'converters.currency.rates';
 /**

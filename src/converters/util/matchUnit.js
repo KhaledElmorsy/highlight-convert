@@ -1,4 +1,4 @@
-import { escapeRegex } from '@/util/misc';
+import { escapeRegex } from '@util/misc';
 
 /**
  * Capture group names for each match target.

@@ -1,5 +1,5 @@
 import Range from '../Range';
-import setupCompletion from '@/settings/test-utils/setupCompletion';
+import setupCompletion from '@settings/test-utils/setupCompletion';
 
 const key = 'test';
 const area = 'sync';
