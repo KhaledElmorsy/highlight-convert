@@ -1,5 +1,4 @@
 import Toggle from '../Toggle';
-import storage from '@mocks/chrome/storage/storage';
 import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';
@@ -10,13 +9,13 @@ describe('constructor():', () => {
   it('Sets default value if passed', async () => {
     new Toggle({ ...defaultSetup, defaultValue: false });
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({ [key]: false });
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ [key]: false });
   });
 
   it('Sets value to "true" by default if one isnt passed', async () => {
     new Toggle(defaultSetup);
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({ [key]: true });
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ [key]: true });
   });
 });
 
@@ -40,9 +39,9 @@ describe('toggle():', () => {
     await setupCompletion();
 
     for (let initialVal of [true, false]) {
-      storage.sync.get.mockReturnValueOnce({ [key]: initialVal });
+      chrome.storage.sync.get.mockReturnValueOnce({ [key]: initialVal });
       await toggle.toggle();
-      expect(storage.sync.set).toHaveBeenCalledWith({
+      expect(chrome.storage.sync.set).toHaveBeenCalledWith({
         [key]: !initialVal,
       });
     }

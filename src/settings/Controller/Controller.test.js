@@ -1,5 +1,4 @@
 import Controller from './Controller';
-import storage from '@mocks/chrome/storage/storage';
 import setupCompletion from '../test-utils/setupCompletion';
 
 const area = 'sync';
@@ -16,10 +15,10 @@ afterEach(jest.clearAllMocks);
 
 describe('constructor():', () => {
   it('Sets value to default if no storage item exists', async () => {
-    storage.sync.get.mockReturnValueOnce({});
+    chrome.storage.sync.get.mockReturnValueOnce({});
     new Controller(defaultSetup);
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       [key]: defaultValue,
     });
   });
@@ -31,7 +30,7 @@ describe('constructor():', () => {
 
     new Controller(defaultSetup);
     await setupCompletion();
-    expect(storage.sync.set).toHaveBeenCalledWith({
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       [key]: defaultValue,
     });
     validateSpy.mockRestore();
@@ -40,12 +39,12 @@ describe('constructor():', () => {
 
 describe('get():', () => {
   it('Returns the current setting', async () => {
-    storage.sync.get.mockReturnValue({ [key]: defaultValue  });
+    chrome.storage.sync.get.mockReturnValue({ [key]: defaultValue  });
     const controller = new Controller(defaultSetup);
     await setupCompletion();
     const value = await controller.get();
     expect(value).toBe(defaultValue);
-    storage.sync.get.mockReset();
+    chrome.storage.sync.get.mockReset();
   });
 });
 
@@ -54,7 +53,7 @@ describe('set():', () => {
     const controller = new Controller(defaultSetup);
     await setupCompletion();
     await controller.set(options[1]);
-    expect(storage.sync.set).toHaveBeenCalledWith({
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       [key]: options[1]
     })
   });

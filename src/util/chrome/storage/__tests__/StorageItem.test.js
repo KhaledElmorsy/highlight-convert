@@ -1,29 +1,28 @@
 import StorageItem from '../StorageItem';
-import storage from '@mocks/chrome/storage/storage';
 
 const key = 'test.path';
 
 afterEach(jest.clearAllMocks);
 
-const testInstance = new StorageItem(key, storage.local);
+const testInstance = new StorageItem(key, chrome.storage.local);
 
 describe('set():', () => {
-  it('calls the areas set() method with the key prop and passed items', async () => {
+  it('Calls the areas set() method with the key prop and passed items', async () => {
     const items = {
       name: 'Khaled',
     };
     await testInstance.set(items);
-    expect(storage.local.set).toHaveBeenCalledWith({
+    expect(chrome.storage.local.set).toHaveBeenCalledWith({
       [key]: items,
     });
   });
 });
 
 describe('get():', () => {
-  it('calls the areas get() method with the passed key and returns the stored value', async () => {
+  it('Calls the areas get() method with the passed key and returns the stored value', async () => {
     const testValue = { test: 'successful ✅' };
 
-    storage.local.get.mockReturnValueOnce({
+    chrome.storage.local.get.mockReturnValueOnce({
       [key]: testValue,
     });
 
@@ -31,7 +30,7 @@ describe('get():', () => {
   });
 
   it('returns undefined if nothing is stored at the key', async () => {
-    storage.local.get.mockReturnValueOnce({});
+    chrome.storage.local.get.mockReturnValueOnce({});
 
     expect(await testInstance.get()).toBe(undefined);
   });
@@ -41,8 +40,8 @@ describe('merge():', () => {
   it('Sets the item to the passed value if not an object', () => {
     testInstance.merge('test');
     testInstance.merge([1]);
-    expect(storage.local.set).toHaveBeenNthCalledWith(1, { [key]: 'test' });
-    expect(storage.local.set).toHaveBeenNthCalledWith(2, { [key]: [1] });
+    expect(chrome.storage.local.set).toHaveBeenNthCalledWith(1, { [key]: 'test' });
+    expect(chrome.storage.local.set).toHaveBeenNthCalledWith(2, { [key]: [1] });
   });
 
   it('Deep merges passed objects with the stored state, overwriting arrays', async () => {
@@ -60,7 +59,7 @@ describe('merge():', () => {
       },
     };
 
-    storage.local.get.mockReturnValueOnce({
+    chrome.storage.local.get.mockReturnValueOnce({
       [key]: initialState,
     });
 
@@ -85,10 +84,10 @@ describe('merge():', () => {
     const testItems = [{}, {[key]: [1]}, {[key]: 'asd'}];
 
     for (let item of testItems) {
-      storage.local.get.mockReturnValueOnce(item);
+      chrome.storage.local.get.mockReturnValueOnce(item);
       await testInstance.merge(update);
-      expect(storage.local.set).toHaveBeenCalledWith({ [key]: update });
-      storage.local.set.mockClear();
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({ [key]: update });
+      chrome.storage.local.set.mockClear();
     }
   });
 });

@@ -1,5 +1,4 @@
 import Picker from '../Picker';
-import storage from '@mocks/chrome/storage/storage'; // Mock chrome.storage
 import setupCompletion from '@/settings/test-utils/setupCompletion';
 
 const key = 'test';
@@ -47,7 +46,7 @@ describe('get():', () => {
     await setupCompletion();
 
     const value = options[1];
-    storage.sync.get.mockResolvedValueOnce({ [key]: value });
+    chrome.storage.sync.get.mockResolvedValueOnce({ [key]: value });
     expect(await picker.get()).toBe(value);
   });
 });
