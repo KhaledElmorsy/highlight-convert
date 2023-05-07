@@ -1,8 +1,7 @@
 const { WebSocketServer } = require('ws');
+const fs = require('fs');
 
-const pluginName = 'ChromeReloadPlugin';
-
-const backgroundSocket = (port) => `
+const getBackgroundSocketCode = (port) => `
   (() => {
     function reload() {
       chrome.tabs.reload(() => {});
@@ -14,6 +13,10 @@ const backgroundSocket = (port) => `
     function setUpReloader() {
       const reloader = new WebSocket('ws://localhost:${port}');
 
+      reloader.onopen = () => {
+        console.log('Listening for changes');
+      }
+
       reloader.onmessage = (e) => {
         if (e.data === 'reload') {
           reload();
@@ -22,66 +25,94 @@ const backgroundSocket = (port) => `
       };
 
       reloader.onclose = () => {
-        // clearTimeout(reconnectReloadID);
         console.clear();
         console.log('Attempting to connect to reload server...');
         setTimeout(setUpReloader, 5000);
       };
     }
-
     setUpReloader();
   })()`;
 
-class ChromeReloadPlugin {
-  constructor({ port = 1767 } = {}) {
-    this.port = port;
-  }
+function createReloadServer(port) {
+  const reloadServer = new WebSocketServer({
+    port,
+  });
 
-  apply(compiler) {
-    let reloadServer;
-
-    compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
-      compilation.hooks.processAssets.tap(
-        { name: pluginName, stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS },
-        (assets) => {
-          assets['background.js']._source._children.push(
-            backgroundSocket(this.port)
-          );
-        }
+  let reloadMessage = {
+    connections: 0,
+    timeout: null,
+    logReloaders() {
+      console.log(
+        `\x1b[33m\x1b[1mReloaded \x1b[32m ${this.connections} extension(s) \x1b[0m`
       );
-    });
+    },
+    reset() {
+      this.connections = 0;
+      this.timeout = null;
+    },
+    debounceAnnounceReloader() {
+      clearTimeout(this.timeout);
+      this.connections += 1;
+      this.timeout = setTimeout(() => {
+        this.logReloaders();
+        this.reset();
+      }, 1000);
+    },
+  };
 
-    compiler.hooks.environment.tap(pluginName, () => {
-      reloadServer = new WebSocketServer({
-        port: this.port,
-      });
-
-      let reloading = { logTimeout: null, connections: 0 };
-      reloadServer.on('connection', (client) => {
-        client.on('message', (data) => {
-          if (data.toString() === 'reloaded') {
-            reloading.connections += 1;
-            clearTimeout(reloading.logTimeout);
-            reloading.logTimeout = setTimeout(() => {
-              console.log(
-                `\x1b[33m\x1b[1mReloaded \x1b[32m ${reloading.connections} extension(s) \x1b[0m`
-              );
-              reloading = { logTimeout: null, connections: 0 };
-            }, 1000);
-          }
-        });
-      });
-    });
-
-    compiler.hooks.done.tap(pluginName, () => {
-      if (reloadServer) {
-        const { clients } = reloadServer;
-        clients.forEach((client) => {
-          client.send('reload');
-        });
+  reloadServer.on('connection', (client) => {
+    client.on('message', (data) => {
+      if (data.toString() === 'reloaded') {
+        reloadMessage.debounceAnnounceReloader();
       }
     });
+  });
+
+  function requestReload() {
+    reloadServer.clients.forEach((client) => {
+      client.send('reload');
+    });
   }
+
+  return { requestReload };
 }
 
-module.exports = ChromeReloadPlugin;
+/**
+ *
+ * @param {object} args
+ * @param {number} port Websocket server port
+ * @returns {import('rollup').PluginHooks}
+ */
+module.exports.rollupChromeReload = function ({ port = 1767 } = {}) {
+  let reload = false;
+  let reloadServer;
+  let watching = false;
+
+  /** @type {import('rollup').PluginHooks} */
+  return {
+    name: 'Chrome extension reload',
+
+    options() {
+      reload = this.meta.watchMode;
+      if (!reload) return;
+      reloadServer ??= createReloadServer(port);
+    },
+
+    outputOptions({dir}) {
+      if (!reload || watching) return;
+  
+      let reloadDebounce;
+      fs.watch(dir, { recursive: true }, (e) => {
+        clearTimeout(reloadDebounce);
+        reloadDebounce = setTimeout(reloadServer.requestReload, 500);
+      });
+      watching = true;
+    },
+
+    generateBundle(_, chunks) {
+      if (!reload) return;
+      const background = chunks['background.js'];
+      background.code += getBackgroundSocketCode(port);
+    },
+  };
+};

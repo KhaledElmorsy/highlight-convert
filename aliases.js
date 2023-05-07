@@ -2,7 +2,7 @@ const path = require('path');
 const {compilerOptions: {paths}} = require('./jsconfig.json')
 
 const toolMappers = {
-  webpack: {
+  vite: {
     alias: (str) => str.match(/.*(?=\/\*)/)[0],
     dir: (str) => path.resolve(__dirname, str.match(/.*(?=\*)/)[0])
   },
@@ -25,5 +25,5 @@ function mapAlias(tool) {
   return Object.fromEntries(mappedEntries)
 }
 
-module.exports.webpack = mapAlias('webpack');
+module.exports.vite = mapAlias('vite');
 module.exports.jest = mapAlias('jest');
