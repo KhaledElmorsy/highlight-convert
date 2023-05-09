@@ -24,6 +24,7 @@
   "scripts": {
     "test": "jest",
     "build": "node vite-build.js",
+    "build-p": "node vite-build.js -p",
     "watch": "node vite-build.js --watch"
   },
   "sideEffects": ["**/*.?(s)css"]
