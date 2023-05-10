@@ -72,6 +72,6 @@ const configs = {
     getConfig('content-script', 'content-script.js', configs.contentScript)
   );
   build(getConfig('background', 'background.js', configs.background));
-  build(getConfig('popup', 'popup.js', configs.popup));
+  build(getConfig('popup', 'popup.html', configs.popup));
   copyStaticFiles();
 })();
