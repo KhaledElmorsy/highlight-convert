@@ -1,9 +1,9 @@
-const alias = require('./aliases').vite;
+const alias = require('../aliases').vite;
 const { build, mergeConfig } = require('vite');
 const fs = require('fs/promises');
 const path = require('path');
 const cssInjectedByJsPlugin = require('vite-plugin-css-injected-by-js').default;
-const rollupChromeReload = require('./ChromeReloadPlugin').rollupChromeReload;
+const rollupChromeReload = require('../ChromeReloadPlugin').rollupChromeReload;
 
 /** @typedef {import('vite').UserConfig} ViteConfig */
 

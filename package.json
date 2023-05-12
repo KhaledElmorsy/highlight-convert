@@ -25,9 +25,9 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "node vite-build.js",
-    "build-p": "node vite-build.js -p",
-    "watch": "node vite-build.js --watch"
+    "build": "node scripts/vite-build.js",
+    "build-p": "npm run build -- -p",
+    "watch": "npm run build -- --watch"
   },
   "sideEffects": [
     "**/@ui5/**",
