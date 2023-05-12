@@ -33,7 +33,9 @@ function getConfig(entry, entryPath, configOverride) {
       },
       outDir: '../dist',
       emptyOutDir: false,
-      watch: watch ? {} : null,
+      watch: watch ? {
+        buildDelay: 3500
+      } : null,
       sourcemap: !production,
     },
   };
