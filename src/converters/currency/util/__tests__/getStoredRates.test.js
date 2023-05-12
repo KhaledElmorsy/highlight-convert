@@ -1,5 +1,4 @@
 import getStoredRates, { key } from '../getStoredRates';
-import storage from '@mocks/chrome/storage/storage';
 
 const mockStoredRates = () => {
   const storedRates = {
@@ -7,7 +6,7 @@ const mockStoredRates = () => {
     rates: {},
   };
 
-  storage.local.get.mockReturnValueOnce({
+  chrome.storage.local.get.mockReturnValueOnce({
     [key]: storedRates,
   });
 
@@ -32,7 +31,7 @@ describe('Requests, transforms and stores updated rates, with:', () => {
     });
 
     expect(await getStoredRates()).toEqual(finalRates);
-    expect(storage.local.set).toBeCalledWith({
+    expect(chrome.storage.local.set).toBeCalledWith({
       [key]: {
         date: new Date().toLocaleDateString('en-us'),
         rates: finalRates,
@@ -41,11 +40,11 @@ describe('Requests, transforms and stores updated rates, with:', () => {
   });
 
   test('No stored rates', async () => {
-    storage.local.get.mockReturnValueOnce({});
+    chrome.storage.local.get.mockReturnValueOnce({});
   });
 
   test('Stale rates', async () => {
-    storage.local.get.mockReturnValueOnce({
+    chrome.storage.local.get.mockReturnValueOnce({
       [key]: {
         date: '29/02/2000',
         rates: { usd: 1 },

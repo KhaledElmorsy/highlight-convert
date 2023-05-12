@@ -1,36 +1,68 @@
-import { mapKeys } from '@util/chrome/storage';
-import matchUnit from './util/matchUnit';
+import matchUnit from './util/matching/matchUnit';
+import { featureUnits, roundAmounts, moveMainUnits } from './util/conversion';
 
 /**
- * Base class to extend for actual converters to use in the extension.
+ * @template V
+ * @typedef {object} ControllerStub
+ * @prop {() => Promise<V>} get
+ */
+
+/**
+ * @template U
+ * @typedef {object} ConverterControllers<U>
+ * @prop {ControllerStub<U>} [mainUnit]
+ * @prop {ControllerStub<U>} [secondUnit]
+ * @prop {ControllerStub<U[]>} [featuredUnits]
+ * @prop {ControllerStub<number>} [decimals]
+ * @prop {Object<U['id'], ControllerStub<U>} [labelDefaults]
+ */
+
+/**
+ * Create a customizable quantity coverter. Initialize with units, rates, and it's
+ * ready to go.
+ *
+ * Pass in controllers for extra functionality and feautres.
+ *
+ * Extend for more exotic use cases.
  * @template {Unit} U
  */
 export default class Converter {
   /**
-   * @param {Unit[]} units
-   * @param {object} [options]
-   * @param {"left"|"right"} [options.numberSide = 'left'] Number side to prioritize
-   * when a unit is adjacent to two numbers. Default: `left`.
-   *
-   * i.e. `20 usd 40`;  `numberSide == left` => `20 usd`
-   * @param {string} [options.storageKey] Outer key for data stored with the storage api.
+   * @param {object} args
+   * @param {U[]} args.units
+   * @param {Object<U['id'], number>} args.rates Object mapping each unit's ID to a relative
+   * rate
+   * @param {ConverterControllers<U>} [args.controllers] Customize how the converter matches and converts.
+   *   #### Matches
+   *   - Default unit for labels shared across multiple units
+   *  #### Conversions
+   *   - Number of decimal places
+   *   - Featured set of units to bring to the front
+   *   - Main and secondary unit to always put at the start
+   * @param {object} [args.options]
+   * @param {"left"|"right"} [options.numberSide = 'left'] Side to match number
+   * the unit is between two numbers. Default: `left`.
    */
-  constructor(units, { numberSide = 'left', storageKey } = {}) {
+  constructor({
+    units,
+    rates,
+    controllers = {},
+    options: { numberSide = 'left' } = {},
+  }) {
     /** @type {U[]} */
     this.units = units;
+    this.rates = rates;
+    this.controllers = controllers;
 
     /**
      * Number to choose when a unit is between 2 numbers. `20 usd 10` `:=` `20 usd`
      * @type {"left"|"right"}
      */
     this.numSide = numberSide;
-
-    /** Map keys to the convereter's storage path */
-    this.getStorageKey = mapKeys.new(`converters.${storageKey}`);
   }
 
   /**
-   * Create a `Value` object with an inbuilt `convert` method for easily accessible 
+   * Create a `Value` object with an inbuilt `convert` method for easily accessible
    * conversions.
    * @param {U} unit
    * @param {number} amount
@@ -43,13 +75,38 @@ export default class Converter {
   }
 
   /**
-   * Hook into the main matcher and filter its matches before converting into
-   * values
-   * @param {{ unit:Unit, data: import('./util/matchUnit').UnitMatch}} match
+   *
+   * @param {*} match
    * @returns {Promise<boolean>}
    */
-  async matchFilter(match) {
-    return true;
+  async filterSharedLabels(match) {
+    const { labelDefaults } = this.controllers;
+    if (!labelDefaults) return true;
+
+    const {
+      unit,
+      data: { unit: label },
+    } = match;
+
+    const labelController = labelDefaults[label];
+    if (!labelController) return true;
+
+    const defaultUnit = await labelController.get();
+    return unit.id === defaultUnit.id;
+  }
+
+  /**
+   * Hook into the main matcher and filter its matches before converting into
+   * values
+   * @param {{ unit:Unit, data: import('./util/matching/matchUnit').UnitMatch}} match
+   * @returns {Promise<boolean>}
+   */
+  async filterMatches(match) {
+    const filters = [this.filterSharedLabels];
+
+    return await filters.reduce(async (keep, filter) => {
+      return (await keep) && (await filter.call(this, match));
+    }, Promise.resolve(true));
   }
 
   /**
@@ -60,25 +117,23 @@ export default class Converter {
    * @returns {Promise<{range: MatchRange, value: Value<U>}[]>}
    */
   async match(text) {
-    const matches = this.units
-      .map((unit) =>
-        unit.labels.map((label) =>
-          matchUnit(text, label).map((match) => ({ unit, data: match }))
-        )
+    const matches = this.units.flatMap((unit) =>
+      unit.labels.flatMap((label) =>
+        matchUnit(text, label).map((match) => ({ unit, data: match }))
       )
-      .flat(2);
+    );
     /**
-     * Matches:  [ [{match}] , [     ] ] , [ [{match},{match}] , [   ] ]
-     * Labels:     |---$---|   |-USD-|       |------GBP------|   |-£-|
-     * Units:    |------US Dollar------|   |-------British Pound-------|
-     *
-     * Matches.flat(2): [{match:$},{match:GBP},{match:GBP}]
+     * Units:         |------US Dollar------|   |-------British Pound-------|
+     * Labels:          |---$---|   |-USD-|       |------GBP------|   |-£-|
+     * LabelMatches:  [ [{match}] , [     ] ] , [ [{match},{match}] , [   ] ]
+     * Flattened:              [{match:$},{match:GBP},{match:GBP}]
      */
 
-    const filteredMatches = [];
-    for(let match of matches) {
-      if (await this.matchFilter(match)) filteredMatches.push(match)
-    }
+    const filteredMatches = await Promise.all(
+      matches.map(async (match) =>
+        (await this.filterMatches(match)) ? match : false
+      )
+    ).then((matches) => matches.filter(Boolean));
 
     // From matchUnit()'s return shape
     const numPositions = ['numLeft', 'numRight'];
@@ -100,14 +155,75 @@ export default class Converter {
         range,
       };
     });
-
     return values;
   }
 
   /**
-   * Convert a value to different values.
+   * Get the relative rates (scaling ratios) between units.
+   *
+   * Extracted for potentially fetched rates, like currency conversion rates.
+   * @returns {Promise<Object<U['id'], number>>}
+   */
+  async getRates() {
+    return this.rates;
+  }
+
+  /**
+   * Just convert a value to the different units in this converter.
+   *
+   * Scales values linearly by default. Override for different conversion methods,
+   * i.e. temperatures conversions involve shifting as well as sometimes scaling.
+   * @param {Value} value
+   * @returns {Promise<Value[]>}
+   */
+  async convertValue(value) {
+    const { amount } = value;
+    const rates = await this.getRates();
+    const scalingFactor = amount / rates[value.unit.id];
+    return this.units.map((unit) =>
+      this.createValue({
+        unit,
+        amount: rates[unit.id] * scalingFactor,
+      })
+    );
+  }
+
+  /**
+   * Get an array of converted values.
+   *
+   * The returned array is transformed according to the settings of the specific
+   * converter instance.
    * @param {Value<U>} value The `unit` and `amount` to be converted.
    * @returns {Promise<Value<U>[]>}
    */
-  async convert(value) {}
+  async convert(value) {
+    const conversions = await this.convertValue(value);
+    const controllers = this.controllers;
+
+    // Map relevant controllers to their values current values (if the controller exists)
+    const { decimals, featuredUnits, mainUnit, secondUnit } =
+      await Object.entries(controllers).reduce(
+        async (acc, [key, controller]) => ({
+          ...(await acc),
+          [key]: await controller?.get(),
+        }),
+        Promise.resolve({})
+      );
+
+    // All the transformers accept values/conversions as their first argument
+    function curry(t, ...args) {
+      return (values) => t(values, ...args);
+    }
+
+    // [Test, Transformation]: Test passes ==> Apply transformation
+    const transformations = [
+      [controllers.decimals, curry(roundAmounts, decimals)],
+      [controllers.featuredUnits, curry(featureUnits, featuredUnits)],
+      [controllers.mainUnit, curry(moveMainUnits, value, mainUnit, secondUnit)],
+    ];
+
+    return transformations.reduce((conversions, [test, callback]) => {
+      return test ? callback(conversions) : conversions;
+    }, conversions);
+  }
 }
