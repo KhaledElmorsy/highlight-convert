@@ -1,0 +1,62 @@
+@use '@render/views/animations' as animate;
+@use './styles.scss' as *;
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400&display=swap');
+
+.page {
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 15px;
+
+  .section {
+    padding: 10px 15px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    background-color: white;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    @for $i from 0 to 5 {
+      &:nth-child(#{$i}) {
+        @include animate.slide($x: -20%, $props: 700ms 300ms*$i backwards)
+      }
+    }
+
+    h1 {
+      color: $color-main;
+      font-family: Lobster, cursive;
+    }
+
+
+    .container {
+      &:not(.labeled) {
+        display: grid;
+        place-items: center;
+      }
+      
+      &.labeled {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        gap: 5px;
+
+        .label {
+          font-family: 'Comic Neue', sans-serif;
+          font-size: 1.2rem;
+        }
+
+        .viewWrapper {
+          & > * {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+  }
+
+}
