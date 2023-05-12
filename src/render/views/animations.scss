@@ -1,0 +1,37 @@
+@mixin animation($props: null, $name: null) {
+  @if not $name {
+    $name: unique-id();    
+    animation: $name $props;
+  }
+
+  @keyframes #{$name} {
+    @content
+  }
+}
+
+@mixin fade($props: null, $out: false, $name: null){
+  $t: null; @if $out {$t: 1} @else {$t: 0}
+  
+  @include animation($props, $name) {
+    from { opacity: $t} to {opacity: 1-$t}
+  }
+}
+
+@mixin fly($x:0, $y:0, $in: true, $props: null, $name: null) {
+  $translate: $x $y;
+  
+  $from: null; $to: null;
+  @if $in { $from: $translate; $to: 0 0 } @else { $from: 0 0; $to: $translate } 
+
+  @include animation($props, $name) {
+    from {translate: $from} to {translate: $to }
+  }
+}
+
+@mixin slide($x:0, $y:0, $props: 600ms ease-out) {
+  $fade: unique-id();
+  $fly: unique-id();
+  @include fade($name: $fade);
+  @include fly($x, $y, $name: $fly);
+  animation: $fade $props, $fly $props;
+}

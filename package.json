@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@ui5/webcomponents": "^1.13.1",
     "deepmerge": "^4.3.1",
     "global": "^4.4.0",
     "vite-plugin-css-injected-by-js": "^3.1.0"
@@ -27,5 +28,8 @@
     "build-p": "node vite-build.js -p",
     "watch": "node vite-build.js --watch"
   },
-  "sideEffects": ["**/*.?(s)css"]
+  "sideEffects": [
+    "**/@ui5/**",
+    "**/*.?(s)css"
+  ]
 }

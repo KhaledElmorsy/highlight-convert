@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+
+  .picker {
+    width: auto;
+  }
+
+  .node {
+    flex: 1;
+  }
+}

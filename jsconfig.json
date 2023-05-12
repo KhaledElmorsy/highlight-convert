@@ -5,6 +5,7 @@
       "@util/*": ["src/util/*"],
       "@converters/*": ["src/converters/*"],
       "@settings/*": ["src/settings/*"],
+      "@render/*": ["src/render/*"],
       "@/*": ["src/*"],
       "@@mocks/*": ["__mocks__/*"]
     }
