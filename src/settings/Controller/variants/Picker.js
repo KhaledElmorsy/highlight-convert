@@ -5,6 +5,8 @@ import BasePicker from './baseClass/BasePicker';
  * @extends BasePicker<T>
  */
 export default class Picker extends BasePicker {
+   _controllerType = /** @type {const} */ ('Picker');
+
   /**
    * Pick a single item from an array of options.
    * @template {T[]} Options

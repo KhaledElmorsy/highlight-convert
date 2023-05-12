@@ -5,6 +5,8 @@ import BasePicker from './baseClass/BasePicker';
  * @extends BasePicker<T[]>
  */
 export default class MultiPicker extends BasePicker {
+  _controllerType = /** @type {const} */ ('MultiPicker');
+
   /**
    * Pick zero or more unique items from an array of options.
    * @param {object} args

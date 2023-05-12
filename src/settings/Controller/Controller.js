@@ -2,6 +2,18 @@ import { StorageItem } from '@util/chrome/storage';
 
 /** @template T */
 export default class Controller {
+  /** 
+   * String identifying the controller sub class (Picker, Range, etc).
+   * 
+   * The setting factory in './createSetting' maps compatible views to each subtype
+   * but the typing system (JSDoc/Typescript) can't identify which subclass an controller 
+   * instance is from, making type hinting the specific compatible views not possible.
+   * 
+   * The other possible work around is to add a string parameter to the factory but this
+   * property has less overhead since it only needs to be specified in the subclasses.
+   */
+   _controllerType; 
+
   /**
    * Create a mutable value with instance specific options, class validation,
    * and is stored with Chrome's storage api.

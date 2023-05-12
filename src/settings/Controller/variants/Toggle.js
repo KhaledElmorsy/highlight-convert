@@ -2,6 +2,8 @@ import Controller from "../Controller";
 
 /** @extends Controller<boolean> */
 export default class Toggle extends Controller {
+  _controllerType = /** @type {const} */ ('Toggle');
+
   /**
    * Toggleable boolean setting
    * @param {object} args

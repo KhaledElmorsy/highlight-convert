@@ -2,6 +2,8 @@ import Controller from "../Controller";
 
 /** @extends Controller<number> */
 export default class Range extends Controller {
+  _controllerType = /** @type {const} */ ('Range');
+
   /**
    * Basic number range setting.
    * @param {object} args
