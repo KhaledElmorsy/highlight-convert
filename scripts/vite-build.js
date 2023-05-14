@@ -4,6 +4,8 @@ const fs = require('fs/promises');
 const path = require('path');
 const cssInjectedByJsPlugin = require('vite-plugin-css-injected-by-js').default;
 const rollupChromeReload = require('../ChromeReloadPlugin').rollupChromeReload;
+const preact = require("@preact/preset-vite").default;
+
 
 /** @typedef {import('vite').UserConfig} ViteConfig */
 
@@ -51,7 +53,7 @@ const copyStaticFiles = async () =>
 /** @type {Object<string, ViteConfig>} */
 const configs = {
   contentScript: {
-    plugins: [cssInjectedByJsPlugin()],
+    plugins: [cssInjectedByJsPlugin(), preact()],
   },
   background: {
     plugins: [...(production ? [] : [rollupChromeReload()])],

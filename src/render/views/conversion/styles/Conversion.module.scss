@@ -1,0 +1,145 @@
+@use '@render/views/animations' as animate;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;200;300;400;500&display=swap');
+
+$ease-out-circlular: cubic-bezier(0.075, 0.82, 0.165, 1);
+$ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);
+$ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
+
+@keyframes disable_pointer {
+  from {
+    pointer-events: none
+  }
+
+  to {
+    pointer-events: auto
+  }
+}
+
+.container {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  z-Index: 15;
+
+  .bubble {
+    position: absolute;
+    bottom: 150%;
+
+    padding: 7px 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 9px;
+    max-width: 200px;
+    width: auto;
+
+    height: 2rem;
+    overflow: hidden;
+    transform-origin: bottom;
+
+    cursor: pointer;
+
+    backdrop-filter: blur(15px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+
+    display:flex;
+    flex-direction: column;
+
+    @include animate.slide($y: 50%, $props: 300ms $ease-custom, $extend: disable_pointer 300ms);
+    transition: 600ms $ease-custom,
+    transform 200ms;
+    will-change: height;
+
+    .conversions {
+      line-height: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+      align-items: start;
+      font-family: Noto Sans, Arial, Helvetica, sans-serif;
+      font-weight: 500;
+      color: black;
+
+      & > *:not(:nth-child(1)) {
+        display: none;
+      }
+    }
+
+    &.expanded .conversions > * {
+      display: flex;
+    }
+
+    .input {
+      display: none;
+      background: white;
+      appearance: none;
+      outline: none;
+      border:none;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+      border-radius: 5px;
+      height: 20px;
+      flex: 0 0 auto;
+    }
+
+    &:hover:not(.expanded) {
+      transform: translateY(5%) scale(1.02)
+    }
+
+    &.expanded {
+      height: var(--expandedHeight);
+      max-width:var(--expandedWidth);
+
+      .input {
+        display: block;
+      }
+
+      .conversions {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }                  
+    }
+
+    &.out.expanded {
+      height: 500px;
+    }
+
+    &.out {
+      transition: 250ms $ease-in-quad;
+      opacity: 0;
+    }
+
+    &.out:not(.expanded) {
+      transform: translateY(100%);
+    }
+  }
+
+  .hoverArea {
+    position: absolute;
+    box-sizing: content-box;
+    width: 120%;
+    height: 220%;
+    border-radius: 3px;
+    background-color: rgba(32, 178, 171, 0.219);
+    @include animate.slide($y: 30%, $props: 200ms $ease-out-circlular forwards);
+    transition: 300ms ease-out;
+    pointer-events: none;
+    
+    &:hover {
+      opacity: 0.4
+    }
+    
+    &::after {
+      pointer-events: none;
+      display: none;
+      position: absolute;
+      content: "";
+      left: 0;
+      bottom: 0;
+      height: 250%;
+      width: 100%;
+    }
+
+    &.extendedArea::after,
+    &:hover::after {
+      display: block;
+    }
+  }
+}
