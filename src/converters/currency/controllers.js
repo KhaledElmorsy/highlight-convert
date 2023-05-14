@@ -20,19 +20,19 @@ export default {
     options: { min: 0, max: 3, step: 1 },
     defaultValue: 0,
   }),
-  mainCurrency: new Picker({
+  mainUnit: new Picker({
     area,
     key: map('mainCurrency'),
     options: compactUnits,
     defaultValue: 'usd',
   }),
-  foreignCurrency: new Picker({
+  secondUnit: new Picker({
     area,
     key: map('foreignCurrency'),
     options: compactUnits,
     defaultValue: 'eur',
   }),
-  featuredCurrencies: new MultiPicker({
+  featuredUnits: new MultiPicker({
     area,
     key: map('featuredCurrencies'),
     options: compactUnits,

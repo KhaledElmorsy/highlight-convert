@@ -205,7 +205,7 @@ export default class Converter {
       await Object.entries(controllers).reduce(
         async (acc, [key, controller]) => ({
           ...(await acc),
-          [key]: await controller?.get(),
+          [key]: await controller?.get?.(),
         }),
         Promise.resolve({})
       );

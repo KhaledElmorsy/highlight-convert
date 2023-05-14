@@ -3,11 +3,11 @@ import createControllerView from '@settings/createControllerView';
 import { multiLevelPicker } from '@render/views/containers/';
 
 const {
-  mainCurrency,
-  foreignCurrency: secondCurrency,
+   mainUnit,
+  secondUnit,
   decimals,
-  labelDefaults: duplicateSymbols,
-  featuredCurrencies,
+  labelDefaults,
+  featuredUnits,
 } = controllers;
 
 /** @type {import('@render/views/controllers/combBox').ComboBoxSettings} */
@@ -21,7 +21,7 @@ const currencyComboBoxSettings = {
 
 const dupeSymbolMultiPicker = async () => {
   const pickerTree = Object.fromEntries(
-    Object.entries(duplicateSymbols).map(([symbol, controller]) => [
+    Object.entries(labelDefaults).map(([symbol, controller]) => [
       symbol,
       createControllerView({
         controller,
@@ -50,7 +50,7 @@ export default [
         label: 'Main currency',
         description: 'Convert other currencies to this.',
         view: createControllerView({
-          controller: mainCurrency,
+          controller: mainUnit,
           viewSettings: currencyComboBoxSettings,
         }),
       },
@@ -58,7 +58,7 @@ export default [
         label: 'Foreign currency',
         description: 'Convert your main currency to this',
         view: createControllerView({
-          controller: secondCurrency,
+          controller: secondUnit,
           viewSettings: currencyComboBoxSettings,
         }),
       },
@@ -76,7 +76,7 @@ export default [
         label: 'Featured currencies',
         description: 'Show these currencies at the top',
         view: createControllerView({
-          controller: featuredCurrencies,
+          controller: featuredUnits,
           viewSettings: { multi: true, ...currencyComboBoxSettings },
         }),
       },
