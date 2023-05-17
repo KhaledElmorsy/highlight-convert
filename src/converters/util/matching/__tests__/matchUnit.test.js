@@ -114,3 +114,12 @@ it('Returns the start & end (excl.) indices of the matched unit & numbers', () =
   expect(indices.numLeft).toEqual([5, 8]);
   expect(indices.numRight).toEqual([13, 16]);
 });
+
+it('Optionally matches the units letter case', () => {
+  const string = '10 kb are not 10 kB';
+  const unit = 'kB'
+  expect(matchUnit(string, unit, false).length).toBe(2);
+  const matches = matchUnit(string, unit, true)
+  expect(matches.length).toBe(1);
+  expect(matches[0].indices.unit[0]).toBe(17)
+})

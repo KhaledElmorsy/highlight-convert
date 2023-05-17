@@ -20,9 +20,10 @@ const captureGroups = /** @type {const} */ ({
 /**
  * @param {string} string Input string
  * @param {string} label String to Match
- * @returns {UnitMatch}
+ * @param {boolean} caseSensetive
+ * @returns {UnitMatch[]}
  */
-export default function matchUnit(string, label) {
+export default function matchUnit(string, label, caseSensetive = false) {
   const escapedLabel = escapeRegex(label);
   const labelGroup = `(?<${captureGroups.unit}>${escapedLabel})s?`;
   const labelMatcher = `(?<![a-z])${labelGroup}(?![a-z])`; // No adjacent letters
@@ -37,9 +38,11 @@ export default function matchUnit(string, label) {
   const sep = '\\s?(-|\\.)?\\s?'; // Optional separators between the unit and number. '10 usd', '10.usd', '10 - usd'
   const preNumber = `(?<${captureGroups.numLeft}>${numberMatcher})${sep}`;
   const postNumber = `${sep}(?<${captureGroups.numRight}>${numberMatcher})`;
+
+  const flags = 'dg' + (!caseSensetive ? 'i' : ''); // 'd' flag causes matches to include capture group indices
   const regex = new RegExp(
     `(${preNumber})?(${labelMatcher})(${postNumber})?`, // Numbers are optional.
-    'idg' // 'd' flag causes matches to include capture group indices
+    flags
   );
 
   let match;

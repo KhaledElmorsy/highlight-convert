@@ -77,6 +77,17 @@ describe('match():', () => {
     );
   });
 
+  it('Optionally performs case sensetive label matching', async () => {
+    const string = 'match 100 usd not 100 USD';
+    const exactConverter = new Converter({
+      units: mockUnits,
+      options: { caseSensitive: true },
+    });
+    const matches = await exactConverter.match(string);
+    expect(matches.length).toBe(1);
+    expect(matches[0].range[0]).toBe(6);
+  });
+
   it('Filters matches according to Converter.filterMatches()', async () => {
     // Only return a match with 'usd'
     converter.filterMatches = (match) => match.data.unit === 'usd';

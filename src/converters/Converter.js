@@ -40,25 +40,21 @@ export default class Converter {
    *   - Featured set of units to bring to the front
    *   - Main and secondary unit to always put at the start
    * @param {object} [args.options]
-   * @param {"left"|"right"} [options.numberSide = 'left'] Side to match number
+   * @param {"left"|"right"} [args.options.numberSide = 'left'] Side to match number
    * the unit is between two numbers. Default: `left`.
+   * @param {boolean} [args.options.caseSensetive = false] Match label case. Default: `false`.
    */
   constructor({
     units,
     rates,
     controllers = {},
-    options: { numberSide = 'left' } = {},
+    options: { numberSide = 'left', caseSensitive = false } = {},
   }) {
     /** @type {U[]} */
     this.units = units;
     this.rates = rates;
     this.controllers = controllers;
-
-    /**
-     * Number to choose when a unit is between 2 numbers. `20 usd 10` `:=` `20 usd`
-     * @type {"left"|"right"}
-     */
-    this.numSide = numberSide;
+    this.options = {numberSide, caseSensitive}
   }
 
   /**
@@ -119,7 +115,10 @@ export default class Converter {
   async match(text) {
     const matches = this.units.flatMap((unit) =>
       unit.labels.flatMap((label) =>
-        matchUnit(text, label).map((match) => ({ unit, data: match }))
+        matchUnit(text, label, this.options.caseSensitive).map((match) => ({
+          unit,
+          data: match,
+        }))
       )
     );
     /**
@@ -138,7 +137,9 @@ export default class Converter {
     // From matchUnit()'s return shape
     const numPositions = ['numLeft', 'numRight'];
     const [mainNum, otherNum] =
-      this.numSide === 'left' ? numPositions : numPositions.reverse();
+      this.options.numberSide === 'left'
+        ? numPositions
+        : numPositions.reverse();
 
     const values = filteredMatches.map(({ unit, data }) => {
       const amount = parseFloat(data[mainNum] ?? data[otherNum] ?? 1);
