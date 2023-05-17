@@ -1,6 +1,6 @@
 @mixin animation($props: null, $name: null) {
   @if not $name {
-    $name: unique-id();    
+    $name: unique-id();
     animation: $name $props;
   }
 
@@ -9,29 +9,83 @@
   }
 }
 
-@mixin fade($props: null, $out: false, $name: null){
-  $t: null; @if $out {$t: 1} @else {$t: 0}
-  
+@mixin fade($props: null, $out: false, $name: null) {
+  $t: null;
+
+  @if $out {
+    $t: 1
+  }
+
+  @else {
+    $t: 0
+  }
+
   @include animation($props, $name) {
-    from { opacity: $t} to {opacity: 1-$t}
+    from {
+      opacity: $t
+    }
+
+    to {
+      opacity: 1-$t
+    }
   }
 }
 
-@mixin fly($x:0, $y:0, $in: true, $props: null, $name: null) {
+@mixin fly($x: 0, $y: 0, $in: true, $props: null, $name: null) {
   $translate: $x $y;
-  
-  $from: null; $to: null;
-  @if $in { $from: $translate; $to: 0 0 } @else { $from: 0 0; $to: $translate } 
+
+  $from: null;
+  $to: null;
+
+  @if $in {
+    $from: $translate;
+    $to: 0 0
+  }
+
+  @else {
+    $from: 0 0;
+    $to: $translate
+  }
 
   @include animation($props, $name) {
-    from {translate: $from} to {translate: $to }
+    from {
+      translate: $from
+    }
+
+    to {
+      translate: $to
+    }
   }
 }
 
-@mixin slide($x:0, $y:0, $props: 600ms ease-out, $extend: null) {
+@mixin slide($x: 0, $y: 0, $props: 600ms ease-out, $extend: null) {
   $fade: unique-id();
   $fly: unique-id();
   @include fade($name: $fade);
   @include fly($x, $y, $name: $fly);
   animation: $fade $props, $fly $props, $extend;
+}
+
+@mixin scale($x1: 1, $x2: 1, $y1: 1, $y2: 1, $props: 300ms ease-out, $name: null) {
+  @include animation($props, $name) {
+    from {
+      scale: $x1 $y1
+    }
+
+    to {
+      scale: $x2 $y2
+    }
+  }
+}
+
+@mixin property($property, $from, $to, $props: 300ms, $name: null) {
+  @include animation($props, $name) {
+    from {
+      #{$property}: $from
+    }
+
+    to {
+      #{$property}: $to
+    }
+  }
 }

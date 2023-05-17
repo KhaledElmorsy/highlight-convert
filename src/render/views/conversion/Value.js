@@ -1,6 +1,7 @@
-import styles from './styles/value.module.scss';
+import styles from './styles/Value.module.scss';
 
 /**
+ * Displays the amount, id, and optional name & symbol of a value.
  * @param {Value<any>} value
  */
 export default function Value({
@@ -8,7 +9,7 @@ export default function Value({
   unit: {
     name,
     id,
-    symbol: { image, alt },
+    symbol: { alt },
   },
 }) {
   const amountNum = {
@@ -16,7 +17,7 @@ export default function Value({
     regular: Intl.NumberFormat('en').format(amount),
   };
 
-  const renderedName = name ?? id;
+  const hasName = name !== undefined;
 
   return (
     <div className={styles.valueContainer}>
@@ -25,8 +26,14 @@ export default function Value({
       </span>
       <div className={styles.nameContainer}>
         <span className={styles.alt}>{alt}</span>
-        <span className={styles.name} tile={renderedName}>
-          {renderedName}
+        <span className={styles.name} title={hasName ? `${name} - ${id}` : id}>
+          {hasName ? (
+            <>
+              {name} <span className={styles.subtitle}>{id}</span>
+            </>
+          ) : (
+            id
+          )}
         </span>
       </div>
     </div>

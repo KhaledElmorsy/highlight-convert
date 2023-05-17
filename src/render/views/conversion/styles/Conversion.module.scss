@@ -1,16 +1,21 @@
+@use "sass:math";
 @use '@render/views/animations' as animate;
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;200;300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
 
-$ease-out-circlular: cubic-bezier(0.075, 0.82, 0.165, 1);
-$ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);
+
+$ease-out-circular: cubic-bezier(0.075, 0.82, 0.165, 1);
 $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
 
-@keyframes disable_pointer {
-  from {
+@keyframes enable_pointer {
+  0% {
     pointer-events: none
   }
 
-  to {
+  99% {
+    pointer-events: none
+  }
+
+  100% {
     pointer-events: auto
   }
 }
@@ -19,121 +24,158 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
   position: absolute;
   display: grid;
   place-items: center;
-  z-Index: 15;
+  z-index: 15;
 
   .bubble {
     position: absolute;
-    bottom: 150%;
+    bottom: calc(100% + 15px);
 
-    padding: 7px 10px;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-radius: 9px;
-    max-width: 200px;
+    --initWidth: var(--expandedWidth);
+    max-width: var(--initWidth);
+    min-width: 0px;
     width: auto;
-
-    height: 2rem;
+    height: 3em;
     overflow: hidden;
-    transform-origin: bottom;
 
+    font-size: 14px;
+    
     cursor: pointer;
-
-    backdrop-filter: blur(15px);
+    
+    border-radius: 9px;
+    backdrop-filter: blur(17px);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.5);
 
-    display:flex;
+    display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-    @include animate.slide($y: 50%, $props: 300ms $ease-custom, $extend: disable_pointer 300ms);
-    transition: 600ms $ease-custom,
-    transform 200ms;
-    will-change: height;
-
-    .conversions {
-      line-height: 2rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: start;
-      align-items: start;
-      font-family: Noto Sans, Arial, Helvetica, sans-serif;
-      font-weight: 500;
-      color: black;
-
-      & > *:not(:nth-child(1)) {
-        display: none;
-      }
-    }
-
-    &.expanded .conversions > * {
-      display: flex;
-    }
-
-    .input {
-      display: none;
-      background: white;
-      appearance: none;
-      outline: none;
-      border:none;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-      border-radius: 5px;
-      height: 20px;
-      flex: 0 0 auto;
-    }
+    @include animate.slide($y: 50%, $props: 200ms $ease-custom , $extend: enable_pointer 300ms);
+    transition: 500ms $ease-custom;
+    will-change: height, max-width;
 
     &:hover:not(.expanded) {
-      transform: translateY(5%) scale(1.02)
+      transform: translateY(3%);
     }
 
     &.expanded {
       height: var(--expandedHeight);
-      max-width:var(--expandedWidth);
+      max-width: var(--expandedWidth);
+      min-width: var(--expandedMinWidth);
 
-      .input {
-        display: block;
-      }
-
-      .conversions {
-        overflow-y: auto;
-        overflow-x: hidden;
-      }                  
-    }
-
-    &.out.expanded {
-      height: 500px;
-    }
-
-    &.out {
-      transition: 250ms $ease-in-quad;
-      opacity: 0;
+      cursor: default;
     }
 
     &.out:not(.expanded) {
-      transform: translateY(100%);
+      @include animate.slide($y: 40%, $props: 200ms reverse);
+      pointer-events: none;
+    }
+
+    &.out.expanded {
+      @include animate.slide($y: 10%, $props: 300ms reverse);
+      height: 0;
+      max-width: 100px;
+    }
+
+    .conversions {
+      width: 100%;
+      height: auto;
+
+      box-sizing: border-box;
+      padding: 0 10px;
+      margin: 0 0;
+
+      display: flex;
+      flex-grow: 0;
+      flex-direction: column;
+      justify-content: start;
+      align-items: start;
+      gap: 14px;
+
+      font-family: 'DM Sans', Arial, Helvetica, sans-serif;
+      color: black;
+
+      transition: 300ms ease-out, flex-grow 1000ms;
+    }
+    
+    &.expanded .conversions {
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex-grow: 1;
+      margin: 1em 0;
+
+      @for $i from 2 to 100 {
+        $delay: 40;
+
+        &>*:nth-child(#{$i}) {
+          $child-delay: $i*$delay;
+          $max-delay: $delay*20;
+          @include animate.slide($x: 30px, $props: 250ms ease-out both #{math.min($child-delay, $max-delay)}ms);
+        }
+      }
+    }
+
+    .search {
+      width: 80%;
+      flex: 0 0;
+      padding: 6px 4px;
+      margin: 0;
+      will-change: height;
+      @include animate.property(height, 0px, 40px, 1500ms cubic-bezier(.1,.47,.16,.99) both);
+
+      display: grid;
+      place-content: center;
+
+      border: none;
+      border-bottom: lightgray solid 1px;
+
+      color: slategray;
+      font-size: 1.2em;
+      font-family: 'DM Sans', sans-serif;
+
+      pointer-events: none;
     }
   }
 
   .hoverArea {
     position: absolute;
     box-sizing: content-box;
+
     width: 120%;
-    height: 220%;
+    height: 100%;
+    padding: max(6px, 10%) max(3px, 5%);
+
     border-radius: 3px;
-    background-color: rgba(32, 178, 171, 0.219);
-    @include animate.slide($y: 30%, $props: 200ms $ease-out-circlular forwards);
+    background-color: rgba(32, 178, 171, 0.2);
+
+    @include animate.slide($y: 30%, $props: 200ms $ease-out-circular forwards);
     transition: 300ms ease-out;
-    pointer-events: none;
-    
+
+    &:active {
+      pointer-events: none; // Trick to allow hover hovents with click through
+    }
+
     &:hover {
       opacity: 0.4
     }
     
+    // Extended invisible hover area between range and bubble for the mouse to move
+    // through without hiding the bubble
     &::after {
-      pointer-events: none;
       display: none;
-      position: absolute;
+      
       content: "";
+      position: absolute;
       left: 0;
-      bottom: 0;
-      height: 250%;
+
+      // Set with JS. Depends on if the bubble is above or below the selection
+      --top: unset;
+      --bottom: unset;
+      bottom: var(--bottom);
+      top: var(--top);
+
+      height: calc(100% + 30px);
       width: 100%;
     }
 

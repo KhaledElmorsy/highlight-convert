@@ -20,8 +20,8 @@ chrome.runtime.onConnect.addListener((port) => {
           matches.flat().map((match) => match.value.convert())
         );
 
-        return conversions.map((conversion, i) => ({
-          conversion,
+        return conversions.map((values, i) => ({
+          values,
           match: matches[i],
         }));
       });

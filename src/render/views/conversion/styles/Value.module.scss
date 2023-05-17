@@ -24,12 +24,17 @@
 
   .nameContainer {
     display: flex;
-    gap: 5px;
+    gap: 7px;
     width: 100%;
     flex: 1;
 
     .name {
-      font-weight: 200;
+      display: flex;
+      gap: 5px;
+      
+      .subtitle {
+        color: lightgray
+      }
     }
 
     .image {}
