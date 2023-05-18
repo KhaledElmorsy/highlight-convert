@@ -18,20 +18,18 @@ import { featureUnits, roundAmounts, moveMainUnits } from './util/conversion';
  */
 
 /**
- * Create a customizable quantity coverter. Initialize with units, rates, and it's
- * ready to go.
- *
- * Pass in controllers for extra functionality and feautres.
- *
- * Extend for more exotic use cases.
+ * Create a customizable quantity coverter. Extend and override `convertUnit` for
+ * different conversion methods.
+ * 
+ * Can match units in an input string, return conversions and integrate different 
+ * functionality such as unit priority, and configurable amount rounding with optional 
+ * passed controllers.
  * @template {Unit} U
  */
 export default class Converter {
   /**
-   * @param {object} args
+   * @param {Object} args
    * @param {U[]} args.units
-   * @param {Object<U['id'], number>} args.rates Object mapping each unit's ID to a relative
-   * rate
    * @param {ConverterControllers<U>} [args.controllers] Customize how the converter matches and converts.
    *   #### Matches
    *   - Default unit for labels shared across multiple units
@@ -46,20 +44,18 @@ export default class Converter {
    */
   constructor({
     units,
-    rates,
     controllers = {},
     options: { numberSide = 'left', caseSensitive = false } = {},
   }) {
     /** @type {U[]} */
     this.units = units;
-    this.rates = rates;
     this.controllers = controllers;
     this.options = {numberSide, caseSensitive}
   }
 
   /**
-   * Create a `Value` object with an inbuilt `convert` method for easily accessible
-   * conversions.
+   * Create a `Value` object with a `convert` method for easily accessible
+   * conversion.
    * @param {U} unit
    * @param {number} amount
    * @returns {Value<U>}
@@ -70,9 +66,12 @@ export default class Converter {
     return value;
   }
 
+  /** @typedef {import('./util/matching/matchUnit').UnitMatch} UnitMatch */
+
   /**
-   *
-   * @param {*} match
+   * Define which unit to match, when encountering a label that's shared between 
+   * mulitple units.
+   * @param {UnitMatch} match
    * @returns {Promise<boolean>}
    */
   async filterSharedLabels(match) {
@@ -92,9 +91,9 @@ export default class Converter {
   }
 
   /**
-   * Hook into the main matcher and filter its matches before converting into
-   * values
-   * @param {{ unit:Unit, data: import('./util/matching/matchUnit').UnitMatch}} match
+   * Hook into the main matcher and filter its matches. Each match is passed 
+   * into this callback and filtered according to the returned boolean.
+   * @param {UnitMatch} match
    * @returns {Promise<boolean>}
    */
   async filterMatches(match) {
@@ -106,13 +105,19 @@ export default class Converter {
   }
 
   /**
-   * Match all units and their relevant numbers in a string.
+   * Match all units and their neighboring numbers, aka amounts, in a string.
    *
-   * Also return each match's index range.
+   * Each match is accompanied by its start and end indices in the input input string.
    * @param {string} text
-   * @returns {Promise<{range: MatchRange, value: Value<U>}[]>}
+   * @returns {Promise<Match<U>[]>>}
    */
   async match(text) {
+    /**
+     * Units:         |------US Dollar------|   |-------British Pound-------|
+     * Labels:        | |---$---|   |-USD-| |   | |------GBP------|   |-£-| |
+     * LabelMatches:  [ [{match}] , [     ] ] , [ [{match},{match}] , [   ] ]
+     * Flatten x2:              [{match:$},{match:GBP},{match:GBP}]
+     */
     const matches = this.units.flatMap((unit) =>
       unit.labels.flatMap((label) =>
         matchUnit(text, label, this.options.caseSensitive).map((match) => ({
@@ -121,12 +126,6 @@ export default class Converter {
         }))
       )
     );
-    /**
-     * Units:         |------US Dollar------|   |-------British Pound-------|
-     * Labels:          |---$---|   |-USD-|       |------GBP------|   |-£-|
-     * LabelMatches:  [ [{match}] , [     ] ] , [ [{match},{match}] , [   ] ]
-     * Flattened:              [{match:$},{match:GBP},{match:GBP}]
-     */
 
     const filteredMatches = await Promise.all(
       matches.map(async (match) =>
@@ -143,14 +142,12 @@ export default class Converter {
 
     const values = filteredMatches.map(({ unit, data }) => {
       const amount = parseFloat(data[mainNum] ?? data[otherNum] ?? 1);
-
       const range = ((indices) => {
         const sortedIndices = indices.unit
           .concat(indices[mainNum] ?? indices[otherNum] ?? []) // Only relevant number, if any
           .sort((a, b) => a - b);
         return [sortedIndices[0], sortedIndices.at(-1)];
       })(data.indices);
-
       return {
         value: this.createValue({ unit, amount }),
         range,
@@ -160,40 +157,22 @@ export default class Converter {
   }
 
   /**
-   * Get the relative rates (scaling ratios) between units.
-   *
-   * Extracted for potentially fetched rates, like currency conversion rates.
-   * @returns {Promise<Object<U['id'], number>>}
-   */
-  async getRates() {
-    return this.rates;
-  }
-
-  /**
-   * Just convert a value to the different units in this converter.
-   *
-   * Scales values linearly by default. Override for different conversion methods,
-   * i.e. temperatures conversions involve shifting as well as sometimes scaling.
+   * Strictly convert a value to an array of values of the converter's units.
+   * @abstract
    * @param {Value} value
    * @returns {Promise<Value[]>}
    */
-  async convertValue(value) {
-    const { amount } = value;
-    const rates = await this.getRates();
-    const scalingFactor = amount / rates[value.unit.id];
-    return this.units.map((unit) =>
-      this.createValue({
-        unit,
-        amount: rates[unit.id] * scalingFactor,
-      })
-    );
-  }
+  async convertValue(value) {}
 
   /**
-   * Get an array of converted values.
+   * Convert a value, `{unit: Unit, amount: number}` to an array of different values.
    *
-   * The returned array is transformed according to the settings of the specific
-   * converter instance.
+   * The value array is transformed depending on the controllers passed to the converter
+   * instance. Relevant controllers are:
+   *  - `mainUnit`
+   *  - `secondUnit`
+   *  - `decimals`
+   *  - `featuredUnits[unit['id']]`
    * @param {Value<U>} value The `unit` and `amount` to be converted.
    * @returns {Promise<Value<U>[]>}
    */

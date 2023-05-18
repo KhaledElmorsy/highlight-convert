@@ -1,4 +1,4 @@
-import Currency from './Currency';
+import { getRates, cachedRates } from './Currency';
 
 const storedRates = { usd: 1, egp: 30, gbp: 0.8 };
 jest.mock('./controllers', () => ({}));
@@ -8,43 +8,39 @@ jest.mock('./util', () => ({
   getStoredRates: jest.fn(async () => storedRates),
 }));
 
-/** @type {Currency} */
-let testConverter;
-beforeEach(() => {
-  testConverter = Object.assign(Currency);
-});
 
 describe('getRates():', () => {
   it('Returns cached rates if their cache date is the same as the current date', async () => {
-    const cachedRates = {
+    Object.assign(cachedRates, {
       date: new Date().toLocaleDateString('en-us'),
       rates: {},
-    };
-    testConverter.cachedRates = cachedRates;
-    const rates = await testConverter.getRates();
+    });
+
+    const rates = await getRates();
     expect(rates).toBe(cachedRates.rates);
   });
 
   describe('Gets stored rates when: ', () => {
     afterEach(async () => {
-      expect(await testConverter.getRates()).toEqual(storedRates);
+      expect(await getRates()).toEqual(storedRates);
     });
 
-    test('local cached rates dont exist', async () => {
-      testConverter.cachedRates = undefined;
+    test('rates havent been cached locally', () => {
+      cachedRates.rates = undefined;
     });
 
-    test('local cached rates have a different update date', async () => {
-      testConverter.cachedRates = {
+    test('local cached rates have a different update date', () => {
+      Object.assign(cachedRates, {
         date: '29/02/2000',
         rates: {},
-      };
+      });
     });
   });
 });
 
 describe('E2E', () => {
   it('Matches and converts currencies', async () => {
+    const {default: testConverter} = await import('./Currency')
     const units = {
       egp: { id: 'egp', labels: ['egp'] },
       usd: { id: 'usd', labels: ['usd', '$'] },
@@ -52,7 +48,7 @@ describe('E2E', () => {
     };
 
     testConverter.units = Object.values(units);
-    testConverter.cachedRates = {}; // Force to get stored rates
+    cachedRates.rates = undefined; // Force to fetch get stored rates
 
     const matches = await testConverter.match('OLED TV: $1999.9');
     expect(matches.length).toBe(1);
