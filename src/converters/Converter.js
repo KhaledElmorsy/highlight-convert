@@ -41,16 +41,24 @@ export default class Converter {
    * @param {"left"|"right"} [args.options.numberSide = 'left'] Side to match number
    * the unit is between two numbers. Default: `left`.
    * @param {boolean} [args.options.caseSensetive = false] Match label case. Default: `false`.
+   * @param {boolean} [args.options.numberRequired = false] Match labels only when next to a number.
+   * If `false` and a number isn't found, set amount to 1.
+   *
+   * Default: `false`
    */
   constructor({
     units,
     controllers = {},
-    options: { numberSide = 'left', caseSensitive = false } = {},
+    options: {
+      numberSide = 'left',
+      caseSensitive = false,
+      numberRequired = false,
+    } = {},
   }) {
     /** @type {U[]} */
     this.units = units;
     this.controllers = controllers;
-    this.options = { numberSide, caseSensitive };
+    this.options = { numberSide, caseSensitive, numberRequired };
   }
 
   /**
@@ -93,13 +101,25 @@ export default class Converter {
   }
 
   /**
+   * Return if a match has at least one neighboring number.
+   * @param {UnitMatch} match
+   * @returns {boolean}
+   */
+  filterNumberless(match) {
+    return match.data.numLeft !== undefined || match.data.numRight !== undefined;
+  }
+
+  /**
    * Hook into the main matcher and filter its matches. Each match is passed
    * into this callback and filtered according to the returned boolean.
    * @param {UnitMatch} match
    * @returns {Promise<boolean>}
    */
   async filterMatches(match) {
-    const filters = [this.filterSharedLabels];
+    const filters = [
+      this.filterSharedLabels,
+      ...(this.options.numberRequired ? [this.filterNumberless] : []),
+    ];
 
     return await filters.reduce(async (keep, filter) => {
       return (await keep) && (await filter.call(this, match));

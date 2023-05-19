@@ -105,6 +105,23 @@ describe('match():', () => {
     ]);
   });
 
+  it('Optionally ignores matched labels not next to numbers', async () => {
+    const withNumberConverter = new Converter({
+      units: mockUnits,
+      options: { numberRequired: true },
+    });
+    const string = 'For 100 usd - gbp';
+    const defaultMatches = await converter.match(string);
+    expect(defaultMatches.length).toBe(2);
+    
+    const matchesWithNumbers = await withNumberConverter.match(string);
+    expect(matchesWithNumbers.length).toBe(1);
+
+    const match = matchesWithNumbers[0];
+    expect(match.range[0]).toBe(4);
+    expect(match.value.unit).toBe(mockUnitsMap.dollar);
+  });
+
   describe('controllers:', () => {
     describe('labelDefaults (shared labels)', () => {
       const unitMap = {

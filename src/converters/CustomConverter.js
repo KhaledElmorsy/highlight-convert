@@ -16,13 +16,8 @@ import Converter from './Converter';
  */
 export default class CustomConverter extends Converter {
   /** @param {ConverterParamters<U> & CustomConverterParams<U>} args */
-  constructor({
-    units,
-    convertValue,
-    controllers = {},
-    options: { numberSide = 'left', caseSensitive = false } = {},
-  }) {
-    super({ units, controllers, options: { numberSide, caseSensitive } });
+  constructor({ units, convertValue, controllers, options }) {
+    super({ units, controllers, options });
     this.convertValue = convertValue;
   }
 }
