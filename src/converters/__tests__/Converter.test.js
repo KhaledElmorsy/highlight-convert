@@ -17,35 +17,39 @@ beforeEach(() => {
 
 describe('match():', () => {
   const testString = '10 usd or maybe 10.09 gbp or 50$ 10 or just £';
-  it('Returns an array of matched values (unit & amount) and their index ranges', async () => {
+  it('Returns an array of matched values (unit, amount, convert()) and their index ranges', async () => {
     expect(await converter.match(testString)).toEqual(
       expect.arrayContaining([
         {
-          value: expect.objectContaining({
+          value: {
             unit: mockUnitsMap.dollar,
             amount: 10,
-          }),
+            convert: expect.any(Function),
+          },
           range: [0, 6],
         },
         {
-          value: expect.objectContaining({
+          value: {
             unit: mockUnitsMap.pound,
             amount: 10.09,
-          }),
+            convert: expect.any(Function),
+          },
           range: [16, 25],
         },
         {
-          value: expect.objectContaining({
+          value: {
             unit: mockUnitsMap.dollar,
             amount: 50, // Prioritizes number on the left by default
-          }),
+            convert: expect.any(Function),
+          },
           range: [29, 32],
         },
         {
-          value: expect.objectContaining({
+          value: {
             unit: mockUnitsMap.pound,
             amount: 1, // Defaults to 1 unit if no number is parsed
-          }),
+            convert: expect.any(Function),
+          },
           range: [44, 45],
         },
       ])
@@ -125,6 +129,17 @@ describe('match():', () => {
 });
 
 describe('convert():', () => {
+  it('Returns an array of value objects, each with a "convert" method', async () => {
+    const convertedVectors = mockUnits.map((unit) => ({ unit, amount: 1 }));
+    converter.convertValue = () => convertedVectors;
+    const values = await converter.convert({ amount: 1, unit: mockUnits[1] });
+    expect(values).toEqual(
+      convertedVectors.map((vector) =>
+        expect.objectContaining({ ...vector, convert: expect.any(Function) })
+      )
+    );
+  });
+
   describe('controllers:', () => {
     describe('decimals:', () => {
       it('Rounds amounts according to current controller value', async () => {
@@ -265,12 +280,12 @@ describe('convert():', () => {
 
             const topUnit = convertTarget === mainUnit ? secondUnit : mainUnit;
             expect(conversions.slice(0, featuredUnits.length + 1)).toEqual(
-             
               expect.arrayContaining([
                 expect.objectContaining({ unit: topUnit }),
-                ...featuredUnits.map((unit) => expect.objectContaining({ unit }))
-              ]
-              ),
+                ...featuredUnits.map((unit) =>
+                  expect.objectContaining({ unit })
+                ),
+              ])
             );
           }
         });

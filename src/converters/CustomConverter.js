@@ -11,8 +11,8 @@ import Converter from './Converter';
  */
 
 /**
- * A converter which uses a passed function to convert values.
- * @tempalte {Unit} U
+ * A {@link Converter} which which converts value vectors with a passed function.
+ * @template {Unit} U
  */
 export default class CustomConverter extends Converter {
   /** @param {ConverterParamters<U> & CustomConverterParams<U>} args */
@@ -23,7 +23,6 @@ export default class CustomConverter extends Converter {
     options: { numberSide = 'left', caseSensitive = false } = {},
   }) {
     super({ units, controllers, options: { numberSide, caseSensitive } });
-    this.convertValue = async (value) =>
-      (await convertValue(value)).map(v => this.createValue(v));
+    this.convertValue = convertValue;
   }
 }

@@ -19,7 +19,7 @@ import Converter from './Converter';
 
 /**
  * Create a {@link Converter} that converts values by scaling their amounts linearly 
- * according to their relative rate between their units.
+ * according to the relative rate between their units.
  * @template {Unit} U
  */
 export default class LinearConverter extends Converter {
@@ -41,19 +41,17 @@ export default class LinearConverter extends Converter {
   }
 
   /**
-   * Scale values linearly according to a normalized set of relative rates.
-   * @param {Value} value
-   * @returns {Promise<Value[]>}
+   * Scale value vectors linearly according to a normalized set of relative rates.
+   * @param {ValueVector} vector
+   * @returns {Promise<ValueVector[]>}
    */
-  async convertValue(value) {
-    const { amount } = value;
+  async convertValue(vector) {
+    const { amount } = vector;
     const rates = await this.getRates();
-    const scalingFactor = amount / rates[value.unit.id];
-    return this.units.map((unit) =>
-      this.createValue({
-        unit,
-        amount: rates[unit.id] * scalingFactor,
-      })
-    );
+    const scalingFactor = amount / rates[vector.unit.id];
+    return this.units.map((unit) => ({
+      unit,
+      amount: scalingFactor * rates[unit.id]
+    }));
   }
 }

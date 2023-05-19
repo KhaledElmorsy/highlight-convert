@@ -20,9 +20,9 @@ import { featureUnits, roundAmounts, moveMainUnits } from './util/conversion';
 /**
  * Create a customizable quantity coverter. Extend and override `convertUnit` for
  * different conversion methods.
- * 
- * Can match units in an input string, return conversions and integrate different 
- * functionality such as unit priority, and configurable amount rounding with optional 
+ *
+ * Can match units in an input string, return conversions and integrate different
+ * functionality such as unit priority, and configurable amount rounding with optional
  * passed controllers.
  * @template {Unit} U
  */
@@ -50,26 +50,28 @@ export default class Converter {
     /** @type {U[]} */
     this.units = units;
     this.controllers = controllers;
-    this.options = {numberSide, caseSensitive}
+    this.options = { numberSide, caseSensitive };
   }
 
   /**
-   * Create a `Value` object with a `convert` method for easily accessible
-   * conversion.
+   * Create an easily convertible `Value` object with an embedded `convert` method
+   * from a  `ValueVector` with an `amount` and `unit`.
    * @param {U} unit
    * @param {number} amount
    * @returns {Value<U>}
    */
   createValue({ unit, amount }) {
-    const value = { unit, amount };
-    value.convert = this.convert.bind(this, value);
-    return value;
+    const vector = { unit, amount };
+    return {
+      ...vector,
+      convert: () => this.convert(vector),
+    };
   }
 
   /** @typedef {import('./util/matching/matchUnit').UnitMatch} UnitMatch */
 
   /**
-   * Define which unit to match, when encountering a label that's shared between 
+   * Define which unit to match, when encountering a label that's shared between
    * mulitple units.
    * @param {UnitMatch} match
    * @returns {Promise<boolean>}
@@ -91,7 +93,7 @@ export default class Converter {
   }
 
   /**
-   * Hook into the main matcher and filter its matches. Each match is passed 
+   * Hook into the main matcher and filter its matches. Each match is passed
    * into this callback and filtered according to the returned boolean.
    * @param {UnitMatch} match
    * @returns {Promise<boolean>}
@@ -148,6 +150,7 @@ export default class Converter {
           .sort((a, b) => a - b);
         return [sortedIndices[0], sortedIndices.at(-1)];
       })(data.indices);
+
       return {
         value: this.createValue({ unit, amount }),
         range,
@@ -157,15 +160,15 @@ export default class Converter {
   }
 
   /**
-   * Strictly convert a value to an array of values of the converter's units.
+   * Strictly convert a value vector to vectors of the converter's different units.
    * @abstract
-   * @param {Value} value
-   * @returns {Promise<Value[]>}
+   * @param {ValueVector<U>} value
+   * @returns {Promise<ValueVector<U>[]>}
    */
   async convertValue(value) {}
 
   /**
-   * Convert a value, `{unit: Unit, amount: number}` to an array of different values.
+   * Convert a value vector, `{unit: Unit, amount: number}` to an array of values.
    *
    * The value array is transformed depending on the controllers passed to the converter
    * instance. Relevant controllers are:
@@ -173,11 +176,13 @@ export default class Converter {
    *  - `secondUnit`
    *  - `decimals`
    *  - `featuredUnits[unit['id']]`
-   * @param {Value<U>} value The `unit` and `amount` to be converted.
+   * @param {ValueVector<U>} value The `unit` and `amount` to be converted.
    * @returns {Promise<Value<U>[]>}
    */
-  async convert(value) {
-    const conversions = await this.convertValue(value);
+  async convert(inputVector) {
+    const convertedVectors = await this.convertValue(inputVector);
+    const values = convertedVectors.map((vector) => this.createValue(vector));
+    
     const controllers = this.controllers;
 
     // Map relevant controllers to their values current values (if the controller exists)
@@ -199,11 +204,11 @@ export default class Converter {
     const transformations = [
       [controllers.decimals, curry(roundAmounts, decimals)],
       [controllers.featuredUnits, curry(featureUnits, featuredUnits)],
-      [controllers.mainUnit, curry(moveMainUnits, value, mainUnit, secondUnit)],
+      [controllers.mainUnit, curry(moveMainUnits, inputVector, mainUnit, secondUnit)],
     ];
 
-    return transformations.reduce((conversions, [test, callback]) => {
-      return test ? callback(conversions) : conversions;
-    }, conversions);
+    return transformations.reduce((values, [test, callback]) => {
+      return test ? callback(values) : values;
+    }, values);
   }
 }

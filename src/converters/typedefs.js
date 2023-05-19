@@ -11,11 +11,32 @@
  */
 
 /**
+ * @template {Unit} U 
+ * @typedef {typeof import('./Converter').default<U>} ConverterConstructor<U>
+ */
+
+/**
+ * @template {Unit} U 
+ * @typedef {ConstructorParameters<ConverterConstructor<U>>['0']} ConverterParamters<U> 
+ */
+
+
+/**
  * @template {Unit} U
- * @typedef {Object} Value<U> An amount of a unit
+ * @typedef {InstanceType<ConverterConstructor<U>>} Converter<U>
+ */
+
+/**
+ * @template {Unit} U
+ * @typedef {Object} ValueVector<U> An amount of a unit
  * @prop {U} unit
  * @prop {number} amount
- * @prop {()=>Promise<Value[]>} convert Convert the value to all relevant units
+ */
+
+/**
+ * @template {Unit} U
+ * @typedef {ValueVector<U> & {convert: () => ReturnType<Converter<U>['convert']>}} Value<U> A value vector with a 
+ * method, `convert`, that returns equivalent `Values` of relevant units.
  */
 
 /**
@@ -23,13 +44,4 @@
  * @typedef {Object} Match<U> A matched value returned by a converter
  * @prop {[number, number]} range Start and end (excl.) indices of the match in the input string, including the number.
  * @prop {Value<U>} value Unit and amount of the matched value
- */
-
-/**
- * @template {Unit} U 
- * @typedef {typeof import('./Converter').default<U>} Converter<U> */
-
-/**
- * @template {Unit} U 
- * @typedef {ConstructorParameters<Converter<U>>[0]} ConverterParamters<U> 
  */
