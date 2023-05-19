@@ -1,8 +1,25 @@
 import StorageItem from '../StorageItem';
 
+// StorageItem is globally mocked when setting up Jest to bypass duplicate key checks
+jest.unmock('../StorageItem');
+
 const key = 'test.path';
 
 afterEach(jest.clearAllMocks);
+
+describe('constructor()', () => {
+  it('Throws if initialized with a previously used key for the same storage area', async () => {
+    jest.isolateModules(() => {
+      const StorageItem = require('../StorageItem').default;
+      const key = 'test';
+      const area = chrome.storage.local;
+      new StorageItem(key, area);
+      expect(() => new StorageItem(key, area)).toThrow();
+      expect(() => new StorageItem(key, chrome.storage.sync)).not.toThrow();
+      expect(() => new StorageItem(key + '.', area)).not.toThrow();
+    });
+  });
+});
 
 const testInstance = new StorageItem(key, chrome.storage.local);
 
@@ -40,7 +57,9 @@ describe('merge():', () => {
   it('Sets the item to the passed value if not an object', () => {
     testInstance.merge('test');
     testInstance.merge([1]);
-    expect(chrome.storage.local.set).toHaveBeenNthCalledWith(1, { [key]: 'test' });
+    expect(chrome.storage.local.set).toHaveBeenNthCalledWith(1, {
+      [key]: 'test',
+    });
     expect(chrome.storage.local.set).toHaveBeenNthCalledWith(2, { [key]: [1] });
   });
 
@@ -81,7 +100,7 @@ describe('merge():', () => {
 
   it('Sets item to the passed value if the stored item isnt an object', async () => {
     const update = { test: 'update' };
-    const testItems = [{}, {[key]: [1]}, {[key]: 'asd'}];
+    const testItems = [{}, { [key]: [1] }, { [key]: 'asd' }];
 
     for (let item of testItems) {
       chrome.storage.local.get.mockReturnValueOnce(item);

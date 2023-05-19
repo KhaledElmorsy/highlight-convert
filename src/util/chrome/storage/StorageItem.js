@@ -1,27 +1,47 @@
 import merge from 'deepmerge';
 
+/** @typedef {chrome.storage.StorageArea} StorageArea */
+
 /** @template T */
 export default class StorageItem {
   /**
-   * Create a concise link to a specific key in a chrome storage area
+   * Map of registered storage areas and their key sets. 
+   * @type {Map<StorageArea, Set<string>>} */
+  static registry = new Map();
+
+  /**
+   * Create a concise link to a specific key in a storage area
    * @param {string} key
-   * @param {chrome.storage.StorageArea} area
+   * @param {StorageArea} area
    */
   constructor(key, area) {
+    // Ensure the key is unique for that area
+    const keySet = StorageItem.registry.get(area);
+    if (keySet) {
+      if (keySet.has(key)) {
+        throw new Error(
+          `The key "${key}" has already been registered for the passed storage area`,
+        );
+      }
+      keySet.add(key);
+    } else {
+      StorageItem.registry.set(area, new Set([key]));
+    }
+
     this.area = area;
     this.key = key;
   }
 
   /**
-   * Change the value of the storage item. 
-   * @param {T} item 
+   * Change the value of the storage item.
+   * @param {T} item
    */
   async set(item) {
     await this.area.set({ [this.key]: item });
   }
 
-  /** 
-   * Get the *value* of the stored item. 
+  /**
+   * Get the *value* of the stored item.
    * @returns {Promise<T>}
    */
   async get() {
