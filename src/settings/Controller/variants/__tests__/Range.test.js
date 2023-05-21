@@ -1,5 +1,4 @@
 import Range from '../Range';
-import setupCompletion from '@settings/test-utils/setupCompletion';
 
 const key = 'test';
 const area = 'sync';
@@ -28,7 +27,7 @@ describe('validate():', () => {
   it('Fails invalid values', async () => {
     const options = { min: 2, max: 8, step: 0.5 };
     const range = new Range({ ...path, options });
-    await setupCompletion();
+    await range.setupComplete;
 
     const tests = [
       { group: 'valid', values: [2, 8, 3.5], expected: true },

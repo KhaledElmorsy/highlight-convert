@@ -1,5 +1,4 @@
 import Picker from '../Picker';
-import setupCompletion from '@settings/test-utils/setupCompletion';
 
 const key = 'test';
 const area = 'sync';
@@ -27,7 +26,7 @@ describe('constructor():', () => {
 describe('validate():', () => {
   it('Returns true if a value is in the options array', async () => {
     const picker = new Picker(defaultSetup);
-    await setupCompletion();
+    await picker.setupComplete;
     const tests = [
       [{ name: 'Jeff', settings: { darkMode: true } }, true],
       [{ settings: { darkMode: true }, name: 'Jeff' }, false], // Property order matters
@@ -43,7 +42,7 @@ describe('validate():', () => {
 describe('get():', () => {
   it('Returns the selected option at the current index value', async () => {
     const picker = new Picker(defaultSetup);
-    await setupCompletion();
+    await picker.setupComplete;
 
     const value = options[1];
     chrome.storage.sync.get.mockResolvedValueOnce({ [key]: value });

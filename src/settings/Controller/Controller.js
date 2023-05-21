@@ -2,17 +2,17 @@ import { StorageItem } from '@util/chrome/storage';
 
 /** @template T */
 export default class Controller {
-  /** 
+  /**
    * String identifying the controller sub class (Picker, Range, etc).
-   * 
+   *
    * The setting factory in './createSetting' maps compatible views to each subtype
-   * but the typing system (JSDoc/Typescript) can't identify which subclass an controller 
+   * but the typing system (JSDoc/Typescript) can't identify which subclass an controller
    * instance is from, making type hinting the specific compatible views not possible.
-   * 
+   *
    * The other possible work around is to add a string parameter to the factory but this
    * property has less overhead since it only needs to be specified in the subclasses.
    */
-   _controllerType; 
+  _controllerType;
 
   /**
    * Create a mutable value with instance specific options, class validation,
@@ -27,7 +27,7 @@ export default class Controller {
   constructor({ area, key, options, defaultValue }) {
     this.storage = new StorageItem(key, chrome.storage[area]);
     this.options = options ?? null;
-    this.setup(defaultValue);
+    this.setupComplete = this.setup(defaultValue);
   }
 
   /**
@@ -57,7 +57,8 @@ export default class Controller {
    * @returns {Promise<T>}
    */
   async get() {
-    return await this.storage.get();
+    await this.setupComplete;
+    return await this.storage.get();;
   }
 
   /**
@@ -65,8 +66,8 @@ export default class Controller {
    * @param {T} defaultValue Value to initialize the setting with
    */
   async setup(defaultValue) {
-    const currentValue = await this.get();
+    const currentValue = await this.storage.get();
     if (currentValue !== undefined && this.validate(currentValue)) return;
-    this.set(defaultValue);
+    await this.set(defaultValue);
   }
 }
