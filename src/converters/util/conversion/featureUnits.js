@@ -4,12 +4,12 @@
  * @param {Unit[]} featuredUnits Units of the values to move
  * @returns {Value[]}
  */
-export default function featureUnits (values, featuredUnits) {
+export default function featureUnits(values, featuredUnits) {
   return featuredUnits.length === 0
-    ? conversions
+    ? values
     : values.reduce(
         (acc, val) =>
-        featuredUnits.some(({ id }) => id === val.unit.id)
+          featuredUnits.some(({ id }) => id === val.unit.id)
             ? [val, ...acc]
             : [...acc, val],
         []

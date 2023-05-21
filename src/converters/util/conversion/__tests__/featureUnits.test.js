@@ -1,7 +1,7 @@
 import featureUnits from '../featureUnits';
 import mockValues from '../test-utils/mockValues';
 
-it('Puts featured currencies at the start of the array', async () => {
+it('Puts featured units at the start of the array', () => {
   const featuredUnits = ['jpy', 'gbp', 'cad'].map((id) => ({ id }));
 
   const outputFeaturedUnits = featureUnits(mockValues, featuredUnits).slice(
@@ -15,3 +15,7 @@ it('Puts featured currencies at the start of the array', async () => {
     )
   );
 });
+
+it('Returns the same order when passed an empty unit array', () => {
+  expect(featureUnits(mockValues, [])).toEqual(mockValues)
+})
