@@ -13,7 +13,6 @@ import { featureUnits, roundAmounts, moveMainUnits } from './util/conversion';
  * @prop {ControllerStub<U>} [mainUnit]
  * @prop {ControllerStub<U>} [secondUnit]
  * @prop {ControllerStub<U[]>} [featuredUnits]
- * @prop {ControllerStub<number>} [decimals]
  * @prop {Object<U['id'], ControllerStub<U>} [labelDefaults]
  */
 
@@ -34,7 +33,6 @@ export default class Converter {
    *   #### Matches
    *   - Default unit for labels shared across multiple units
    *  #### Conversions
-   *   - Number of decimal places
    *   - Featured set of units to bring to the front
    *   - Main and secondary unit to always put at the start
    * @param {object} [args.options]
@@ -194,7 +192,6 @@ export default class Converter {
    * instance. Relevant controllers are:
    *  - `mainUnit`
    *  - `secondUnit`
-   *  - `decimals`
    *  - `featuredUnits[unit['id']]`
    * @param {ValueVector<U>} value The `unit` and `amount` to be converted.
    * @returns {Promise<Value<U>[]>}
@@ -206,7 +203,7 @@ export default class Converter {
     const controllers = this.controllers;
 
     // Map relevant controllers to their values current values (if the controller exists)
-    const { decimals, featuredUnits, mainUnit, secondUnit } =
+    const { featuredUnits, mainUnit, secondUnit } =
       await Object.entries(controllers).reduce(
         async (acc, [key, controller]) => ({
           ...(await acc),
@@ -222,7 +219,6 @@ export default class Converter {
 
     // [Test, Transformation]: Test passes ==> Apply transformation
     const transformations = [
-      [controllers.decimals, curry(roundAmounts, decimals)],
       [controllers.featuredUnits, curry(featureUnits, featuredUnits)],
       [controllers.mainUnit, curry(moveMainUnits, inputVector, mainUnit, secondUnit)],
     ];

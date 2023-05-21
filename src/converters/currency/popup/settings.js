@@ -3,9 +3,8 @@ import createControllerView from '@settings/createControllerView';
 import { multiLevelPicker } from '@render/views/containers/';
 
 const {
-   mainUnit,
+  mainUnit,
   secondUnit,
-  decimals,
   labelDefaults,
   featuredUnits,
 } = controllers;
@@ -37,15 +36,6 @@ export default [
   {
     title: 'General',
     views: [
-      {
-        label: 'Decimal places',
-        view: createControllerView({
-          controller: decimals,
-          viewSettings: {
-            showTooltip: false,
-          },
-        }),
-      },
       {
         label: 'Main currency',
         description: 'Convert other currencies to this.',

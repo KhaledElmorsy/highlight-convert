@@ -6,7 +6,6 @@
 /**
  * @template {Unit} U
  * @typedef ControllerSettings<U>
- * @prop {{max: number, default: number}} decimals
  * @prop {U} mainUnit
  * @prop {U} secondUnit
  * @prop {U[]} [featuredUnits]

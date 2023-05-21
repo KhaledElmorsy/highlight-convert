@@ -21,7 +21,6 @@ const rates = { usd: 1, gbp: 1, egp: 1 };
 
 /** @type {ControllerSettings<Unit>} */
 const controllerSettings = {
-  decimals: { default: 0, max: 3 },
   mainUnit: unitMap.usd,
   secondUnit: unitMap.gbp,
   featuredUnits: [unitMap.gbp, unitMap.egp],
@@ -87,13 +86,6 @@ describe('controllers', () => {
         );
       }
     });
-  });
-
-  it('Instantiates the decimals range controller with the passed settings', () => {
-    const decimals = controllers.decimals;
-    const passedArgs = controllerSettings.decimals;
-    expect(decimals.options.max).toBe(passedArgs.max);
-    expect(decimals.defaultValue).toBe(passedArgs.default);
   });
 
   describe('Unit driven controllers:', () => {

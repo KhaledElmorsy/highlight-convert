@@ -158,44 +158,6 @@ describe('convert():', () => {
   });
 
   describe('controllers:', () => {
-    describe('decimals:', () => {
-      it('Rounds amounts according to current controller value', async () => {
-        const units = {
-          usd: { id: 'usd' },
-          gbp: { id: 'gbp' },
-        };
-
-        converter.convertValue = async () => [
-          { amount: 1.733333, unit: units.usd },
-          { amount: 0.866667, unit: units.gbp },
-        ];
-
-        const tests = [
-          { decimal: 2, results: { usd: 1.73, gbp: 0.87 } },
-          { decimal: 3, results: { usd: 1.733, gbp: 0.867 } },
-        ];
-
-        for (let { decimal, results } of tests) {
-          converter.controllers.decimals = {
-            get: async () => decimal,
-          };
-          const conversion = await converter.convert();
-          expect(conversion).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                amount: results.usd,
-                unit: units.usd,
-              }),
-              expect.objectContaining({
-                amount: results.gbp,
-                unit: units.gbp,
-              }),
-            ])
-          );
-        }
-      });
-    });
-
     describe('Result order', () => {
       const units = {
         egp: { id: 'egp' },

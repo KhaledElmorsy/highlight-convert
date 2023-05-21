@@ -46,7 +46,6 @@ export default function createConverter({
   const mapKey = mapKeys.new(id);
 
   const {
-    decimals,
     mainUnit,
     secondUnit,
     featuredUnits = [],
@@ -63,12 +62,6 @@ export default function createConverter({
     compactUnits.find(({ id }) => id === unit.id);
 
   const controllers = {
-    decimals: new Range({
-      area,
-      key: mapKey('decimals'),
-      options: { min: 0, max: decimals.max, step: 1 },
-      defaultValue: decimals.default,
-    }),
     mainUnit: new Picker({
       area,
       key: mapKey('mainUnit'),

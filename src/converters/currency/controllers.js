@@ -14,12 +14,6 @@ const compactUnits = units.map(({ id, name, symbol: { alt } }) => ({
 }));
 
 export default {
-  decimals: new Range({
-    area,
-    key: map('decimals'),
-    options: { min: 0, max: 3, step: 1 },
-    defaultValue: 0,
-  }),
   mainUnit: new Picker({
     area,
     key: map('mainCurrency'),
