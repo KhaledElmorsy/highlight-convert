@@ -23,11 +23,11 @@ import Converter from './Converter';
  */
 export default class CustomConverter extends Converter {
   /** @param {ConverterParamters<U> & CustomConverterParams<U>} args */
-  constructor({ units, convertVector, convertAll, controllers, options }) {
+  constructor({ units, convertVector, convertAll, labelDefaults, options }) {
     if (convertAll === undefined && convertVector === undefined) {
       throw new Error('Custom converters must override a conversion method');
     }
-    super({ units, controllers, options });
+    super({ units, labelDefaults, options });
     if (convertAll !== undefined) this.convertAll = convertAll;
     if (convertVector !== undefined) this.convertVector = convertVector;
   }

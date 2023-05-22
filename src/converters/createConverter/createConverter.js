@@ -1,7 +1,9 @@
+import { getCommonLabels } from './util/';
+import { compactUnit } from '@util/misc';
 import LinearConverter from '@converters/LinearConverter';
 import CustomConverter from '@converters/CustomConverter';
-import { MultiPicker, Picker, Range } from '@settings/Controller/';
-import { mapKeys } from '@/util/chrome/storage';
+import { mapKeys } from '@util/chrome/storage';
+import { Picker } from '@settings/Controller';
 
 /**
  * @template {Unit} U
@@ -16,83 +18,73 @@ const converters = {
 };
 
 /**
+ * @template {keyof Constructors<U>} cType ConverterType
+ * @template {Unit} U
+ *
+ * @typedef ConverterFactoryParams
+ * @prop {string} id
+ * @prop {U[]} units
+ * @prop {cType} type Type of converter. Choice affects the `setup` parameter
+ * @prop {SpecialParameters<Constructors<U>[cType]>} setup Required converter configuration
+ * @prop {ConverterOptions<U>} [options]
+ */
+
+/**
  * Create a converter from different available types.
  *
  * Adapts the `setup` parameter depending on the chosen converter `type`.
- *
- * Handles controller creation, customization and injection.
- *
  * @template {keyof Constructors<U>} cType ConverterType
  * @template {Unit} U
- * @param {object} args
- * @param {string} args.id Root for controller storage keys
- * @param {U[]} args.units
- * @param {cType} args.type Type of converter. Choice affects the `setup` parameter
- * @param {SpecialParameters<Constructors<U>[cType]>} args.setup Required converter configuration
- * @param {ConverterOptions<U>} [args.options]
- * @param {ControllerSettings<U>} args.controllerSettings
- * @returns {InstanceType<Constructors<U>[cType]>}
+ * @param {ConverterFactoryParams<cType, U>}
+ * @returns {{
+ *    converter: InstanceType<Constructors<U>[cType]>,
+ *    controllers: {
+ *       labelDefaults: {[label: string]: Picker<U>}
+ *    }
+ * }}
  */
-export default function createConverter({
-  id,
-  units,
-  type,
-  setup,
-  options,
-  controllerSettings,
-}) {
-  const converter = converters[type];
-  const area = 'sync';
+export default function createConverter({ id, units, type, setup, options }) {
+  const converterConstructor = converters[type];
   const mapKey = mapKeys.new(id);
+  const area = 'sync';
 
-  const {
-    mainUnit,
-    secondUnit,
-    featuredUnits = [],
-    labelDefaults = {},
-  } = controllerSettings;
+  // Get labels shared by multiple units and compile into a unit picker for each label
+  const commonLabels = getCommonLabels(units);
+  /** @type {Object<string, Picker<U>>} */
+  const labelDefaultControllers = Object.entries(commonLabels).reduce(
+    (acc, [label, labelUnits]) => {
+      acc[label] = new Picker({
+        area,
+        key: mapKey(`labelDefaults.${label}`),
+        options: labelUnits.map(compactUnit), // Remove unnecessary properties
+        defaultValue: compactUnit(labelUnits[0]),
+      });
+      return acc;
+    },
+    {}
+  );
 
-  /** Only keep fields for identification and rendering, to reduce sync storage space req. */
-  const compactUnits = units.map(({ id, name = null }) => ({
-    id,
-    name,
-  }));
+  // Map pickers to simple chosen unit ID getters for the converter to use 
+  /** @type {Object<string, labelDefaults<U>[string]>} */
+  const labelDefaults = Object.entries(labelDefaultControllers).reduce(
+    (acc, [label, controller]) => {
+      acc[label] = async () => (await controller.get()).id;
+      return acc;
+    },
+    {}
+  );
 
-  const getCompactUnit = (unit) =>
-    compactUnits.find(({ id }) => id === unit.id);
+  const converter = new converterConstructor({
+    units,
+    labelDefaults,
+    ...setup,
+    options,
+  });
 
   const controllers = {
-    mainUnit: new Picker({
-      area,
-      key: mapKey('mainUnit'),
-      options: compactUnits,
-      defaultValue: getCompactUnit(mainUnit),
-    }),
-    secondUnit: new Picker({
-      area,
-      key: mapKey('secondUnit'),
-      options: compactUnits,
-      defaultValue: getCompactUnit(secondUnit),
-    }),
-    featuredUnits: new MultiPicker({
-      area,
-      key: mapKey('featuredUnits'),
-      options: compactUnits,
-      defaultValue: featuredUnits.map(getCompactUnit),
-    }),
-    labelDefaults: Object.entries(labelDefaults).reduce(
-      (acc, [label, { options, default: defaultValue }]) => ({
-        ...acc,
-        [label]: new Picker({
-          area,
-          key: mapKey(`labelDefaults.${label}`),
-          options: options.map(getCompactUnit),
-          defaultValue: getCompactUnit(defaultValue),
-        }),
-      }),
-      {}
-    ),
+    labelDefaults: labelDefaultControllers,
   };
 
-  return new converter({ units, controllers, ...setup, options });
+  // Return controller for rendering and testing
+  return { converter, controllers };
 }

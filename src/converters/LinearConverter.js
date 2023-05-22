@@ -26,8 +26,8 @@ export default class LinearConverter extends Converter {
   /**
    * @param {ConverterParamters<U> & LinearConverterParams<U>} args
    */
-  constructor({ units, rates, getRates, controllers, options }) {
-    super({ units, controllers, options });
+  constructor({ units, rates, getRates, labelDefaults, options }) {
+    super({ units, labelDefaults, options });
     if (rates === undefined && getRates === undefined) {
       throw new Error(
         'Linear converter initialized without rates or rate generator'

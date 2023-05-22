@@ -1,14 +1,19 @@
+import { Picker } from '@settings/Controller';
 import createConverter from './createConverter';
 import LinearConverter from '@converters/LinearConverter';
+import CustomConverter from '@converters/CustomConverter';
+
+class MockPicker {
+  get() {}
+}
 
 jest.mock('@settings/Controller', () => ({
-  MultiPicker: jest.fn((args) => args),
-  Picker: jest.fn((args) => args),
-  Range: jest.fn((args) => args),
+  Picker: jest.fn(() => new MockPicker()),
 }));
 
 class MockConverter {}
 jest.mock('../LinearConverter', () => jest.fn(() => new MockConverter()));
+jest.mock('../CustomConverter', () => jest.fn(() => new MockConverter()));
 
 const converterID = 'test';
 const unitMap = {
@@ -18,19 +23,7 @@ const unitMap = {
 };
 const units = Object.values(unitMap);
 const rates = { usd: 1, gbp: 1, egp: 1 };
-
-/** @type {ControllerSettings<Unit>} */
-const controllerSettings = {
-  mainUnit: unitMap.usd,
-  secondUnit: unitMap.gbp,
-  featuredUnits: [unitMap.gbp, unitMap.egp],
-  labelDefaults: {
-    '£': {
-      options: [unitMap.gbp, unitMap.egp],
-      default: unitMap.egp,
-    },
-  },
-};
+const setup = { rates };
 
 /** @type {ConverterOptions<Unit>} */
 const options = {
@@ -38,13 +31,18 @@ const options = {
   caseSensetive: true,
 };
 
-const testConverter = createConverter({
-  id: converterID,
-  units,
-  type: 'LinearConverter',
-  setup: { rates },
-  controllerSettings,
-  options,
+let converter;
+let controllers;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  ({ converter, controllers } = createConverter({
+    id: converterID,
+    units,
+    type: 'LinearConverter',
+    setup,
+    options,
+  }));
 });
 
 it('Passes options and units to the converter constructor', () => {
@@ -54,67 +52,80 @@ it('Passes options and units to the converter constructor', () => {
 });
 
 it('Returns the correct converter type', () => {
-  expect(testConverter).toBeInstanceOf(MockConverter);
+  expect(converter).toBeInstanceOf(MockConverter);
 });
 
 it('Passes converter setup parameters to the chosen constructor', () => {
-  expect(LinearConverter).toHaveBeenCalledWith(
-    expect.objectContaining({ rates })
+  expect(LinearConverter).toHaveBeenCalledWith(expect.objectContaining(setup));
+  
+  // Custom Converter
+  const ccSetup = { convertAll: () => {}, convertVector: () => {} };
+  createConverter({
+    id: 'any',
+    units,
+    type: 'CustomConverter',
+    setup: ccSetup,
+  });
+  expect(CustomConverter).toHaveBeenCalledWith(
+    expect.objectContaining(ccSetup)
   );
 });
 
-describe('controllers', () => {
-  const controllers = LinearConverter.mock.calls[0][0].controllers;
+describe('labelDefaults', () => {
+  let labelDefaults;
+  let controller;
+  const label = '£';
+  beforeEach(() => {
+    ({ labelDefaults } = controllers);
+    controller = labelDefaults[label];
+  });
+  describe('controllers:', () => {
+    it('Creates controllers for each shared label', () => {
+      expect(labelDefaults).toHaveProperty('£');
+      // Mocked above for easier confirmation
+      expect(labelDefaults['£']).toBeInstanceOf(MockPicker);
+    });
 
-  it('Instatiates controllers with mapped storage keys in the sync storage area', () => {
-    Object.entries(controllers).forEach(([controllerID, value]) => {
-      if (controllerID !== 'labelDefaults') {
-        const controller = value;
-        expect(controller).toEqual(
-          expect.objectContaining({
-            key: `${converterID}.${controllerID}`,
-            area: 'sync',
-          })
-        );
-      } else {
-        const controller = value['£'];
-        expect(controller).toEqual(
-          expect.objectContaining({
-            key: `${converterID}.labelDefaults.£`,
-            area: 'sync',
-          })
-        );
-      }
+    it('Instantiates the controller with the input key (interpolated)', () => {
+      expect(Picker.mock.calls[0][0].key).toBe(
+        `${converterID}.labelDefaults.${label}`
+      );
+    });
+
+    it('Passes a compacted unit array (id & name) as options to the controller', () => {
+      expect(Picker.mock.calls[0][0].options).toEqual(
+        expect.arrayContaining(
+          [unitMap.egp, unitMap.gbp].map(({ id, name }) => ({ id, name }))
+        )
+      );
     });
   });
 
-  describe('Unit driven controllers:', () => {
-    describe('Passes correct and compacted units to:', () => {
-      const compact = ({ id, name }) => ({ id, name });
-      const compactUnits = units.map(compact);
+  it('Passes the default unit ID getter to the converter', async () => {
+    const testID = 'nice';
+    jest.spyOn(controller, 'get').mockResolvedValue({ id: testID });
 
-      test('mainUnit & secondUnit', () => {
-        ['mainUnit', 'secondUnit'].forEach((key) => {
-          const passedArgs = controllers[key];
-          expect(passedArgs.options).toEqual(compactUnits);
-          expect(passedArgs.defaultValue).toEqual(
-            compact(controllerSettings[key])
-          );
-        });
-      });
-      test('featuredUnits', () => {
-        const passedArgs = controllers.featuredUnits;
-        expect(passedArgs.options).toEqual(compactUnits);
-        expect(passedArgs.defaultValue).toEqual(
-          controllerSettings.featuredUnits.map(compact)
-        );
-      });
-      test('labelDefaults > controller', () => {
-        const passedArgs = controllers.labelDefaults['£'];
-        const expected = controllerSettings.labelDefaults['£'];
-        expect(passedArgs.options).toEqual(expected.options.map(compact));
-        expect(passedArgs.defaultValue).toEqual(compact(expected.default));
-      });
+    expect(LinearConverter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelDefaults: {
+          [label]: expect.any(Function),
+        },
+      })
+    );
+
+    const idGetter = LinearConverter.mock.calls[0][0].labelDefaults[label];
+    const defaultID = await idGetter();
+    expect(defaultID).toBe(testID);
+  });
+
+  it('Passes an empty object to the controller if no labels are shared', () => {
+    const testUnits = [unitMap.usd, unitMap.gbp];
+    createConverter({
+      units: testUnits,
+      type: 'LinearConverter',
+      id: converterID,
     });
+    const labelDefaultArgs = LinearConverter.mock.calls.at(-1)[0].labelDefaults;
+    expect(labelDefaultArgs).toEqual({});
   });
 });

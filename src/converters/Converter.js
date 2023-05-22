@@ -1,20 +1,4 @@
 import matchUnit from './util/matching/matchUnit';
-import { featureUnits, roundAmounts, moveMainUnits } from './util/conversion';
-
-/**
- * @template V
- * @typedef {object} ControllerStub
- * @prop {() => Promise<V>} get
- */
-
-/**
- * @template U
- * @typedef {object} ConverterControllers<U>
- * @prop {ControllerStub<U>} [mainUnit]
- * @prop {ControllerStub<U>} [secondUnit]
- * @prop {ControllerStub<U[]>} [featuredUnits]
- * @prop {Object<U['id'], ControllerStub<U>} [labelDefaults]
- */
 
 /**
  * Create a customizable quantity coverter. Extend and override `convertUnit` for
@@ -29,12 +13,8 @@ export default class Converter {
   /**
    * @param {Object} args
    * @param {U[]} args.units
-   * @param {ConverterControllers<U>} [args.controllers] Customize how the converter matches and converts.
-   *   #### Matches
-   *   - Default unit for labels shared across multiple units
-   *  #### Conversions
-   *   - Featured set of units to bring to the front
-   *   - Main and secondary unit to always put at the start
+   * @param {labelDefaults<U>} [args.labelDefaults] For common labels, return which
+   * units to match them with.
    * @param {object} [args.options]
    * @param {"left"|"right"} [args.options.numberSide = 'left'] Side to match number
    * the unit is between two numbers. Default: `left`.
@@ -46,7 +26,7 @@ export default class Converter {
    */
   constructor({
     units,
-    controllers = {},
+    labelDefaults = {},
     options: {
       numberSide = 'left',
       caseSensitive = false,
@@ -55,7 +35,7 @@ export default class Converter {
   }) {
     /** @type {U[]} */
     this.units = units;
-    this.controllers = controllers;
+    this.labelDefaults = labelDefaults;
     this.options = { numberSide, caseSensitive, numberRequired };
   }
 
@@ -83,19 +63,16 @@ export default class Converter {
    * @returns {Promise<boolean>}
    */
   async filterSharedLabels(match) {
-    const { labelDefaults } = this.controllers;
-    if (!labelDefaults) return true;
+    if (!this.labelDefaults) return true;
 
     const {
       unit,
       data: { unit: label },
     } = match;
-
-    const labelController = labelDefaults[label];
-    if (!labelController) return true;
-
-    const defaultUnit = await labelController.get();
-    return unit.id === defaultUnit.id;
+    
+    if (!Object.hasOwn(this.labelDefaults, label)) return true;
+    const defaultUnitID = await this.labelDefaults[label]();
+    return unit.id === defaultUnitID;
   }
 
   /**
@@ -155,21 +132,19 @@ export default class Converter {
       )
     ).then((matches) => matches.filter(Boolean));
 
-    // From matchUnit()'s return shape
-    const numPositions = ['numLeft', 'numRight'];
-    const [mainNum, otherNum] =
-      this.options.numberSide === 'left'
-        ? numPositions
-        : numPositions.reverse();
+    const [mainNum, otherNum] = (() => {
+      const [left, right] = ['numLeft', 'numRight']; // From matchUnit()'s return type
+      const leftPriority = this.options.numberSide === 'left';
+      return leftPriority ? [left, right] : [right, left];
+    })();
 
     const values = filteredMatches.map(({ unit, data }) => {
       const amount = parseFloat(data[mainNum] ?? data[otherNum] ?? 1);
-      const range = ((indices) => {
-        const sortedIndices = indices.unit
-          .concat(indices[mainNum] ?? indices[otherNum] ?? []) // Only relevant number, if any
-          .sort((a, b) => a - b);
-        return [sortedIndices[0], sortedIndices.at(-1)];
-      })(data.indices);
+      // Merge match indices for the unit and relevant number
+      const range = data.indices.unit
+        .concat(data.indices[mainNum] ?? data.indices[otherNum] ?? [])
+        .sort((a, b) => a - b)
+        .filter((_, i, arr) => i === 0 || i === arr.length - 1);
 
       return {
         value: this.createValue({ unit, amount }),
@@ -202,48 +177,12 @@ export default class Converter {
 
   /**
    * Convert a value vector, `{unit: Unit, amount: number}` to an array of values.
-   *
-   * The value array is transformed depending on the controllers passed to the converter
-   * instance. Relevant controllers are:
-   *  - `mainUnit`
-   *  - `secondUnit`
-   *  - `featuredUnits[unit['id']]`
    * @param {ValueVector<U>} value The `unit` and `amount` to be converted.
    * @returns {Promise<Value<U>[]>}
    */
   async convert(inputVector) {
     const convertedVectors = await this.convertAll(inputVector, this.units);
-    const values = convertedVectors.map((vector) => this.createValue(vector));
-
-    const controllers = this.controllers;
-
-    // Map relevant controllers to their values current values (if the controller exists)
-    const { featuredUnits, mainUnit, secondUnit } = await Object.entries(
-      controllers
-    ).reduce(
-      async (acc, [key, controller]) => ({
-        ...(await acc),
-        [key]: await controller?.get?.(),
-      }),
-      Promise.resolve({})
-    );
-
-    // All the transformers accept values/conversions as their first argument
-    function curry(t, ...args) {
-      return (values) => t(values, ...args);
-    }
-
-    // [Test, Transformation]: Test passes ==> Apply transformation
-    const transformations = [
-      [controllers.featuredUnits, curry(featureUnits, featuredUnits)],
-      [
-        controllers.mainUnit,
-        curry(moveMainUnits, inputVector, mainUnit, secondUnit),
-      ],
-    ];
-
-    return transformations.reduce((values, [test, callback]) => {
-      return test ? callback(values) : values;
-    }, values);
+    const values = convertedVectors.map(this.createValue.bind(this));
+    return values;
   }
 }

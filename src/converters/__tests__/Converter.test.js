@@ -122,25 +122,23 @@ describe('match():', () => {
     expect(match.value.unit).toBe(mockUnitsMap.dollar);
   });
 
-  describe('controllers:', () => {
-    describe('labelDefaults (shared labels)', () => {
-      const unitMap = {
-        egp: { id: 'egp', labels: ['💷', 'egp'] },
-        gbp: { id: 'gbp', labels: ['💷', 'gbp'] },
-        usd: { id: 'usd', labels: ['$', 'usd'] },
-      };
+  describe('labelDefaults (shared labels)', () => {
+    const unitMap = {
+      egp: { id: 'egp', labels: ['£', 'egp'] },
+      gbp: { id: 'gbp', labels: ['£', 'gbp'] },
+      usd: { id: 'usd', labels: ['$', 'usd'] },
+    };
 
-      beforeEach(
-        () => (converter = new Converter({ units: Object.values(unitMap) }))
-      );
-      it('matches labels based on the specified default units', async () => {
-        converter.controllers.labelDefaults = {
-          '💷': { get: async () => unitMap.gbp },
-        };
-        const matches = await converter.match('20 💷');
-        expect(matches.length).toBe(1);
-        expect(matches[0].value.unit).toBe(unitMap.gbp);
-      });
+    beforeEach(
+      () => (converter = new Converter({ units: Object.values(unitMap) }))
+    );
+    it('matches labels based on the specified default units', async () => {
+      converter.labelDefaults = {
+        '£': async () => unitMap.gbp.id,
+      };
+      const matches = await converter.match('20 £');
+      expect(matches.length).toBe(1);
+      expect(matches[0].value.unit).toBe(unitMap.gbp);
     });
   });
 });
@@ -188,120 +186,5 @@ describe('convert():', () => {
         })
       )
     );
-  });
-
-  describe('controllers:', () => {
-    describe('Result order', () => {
-      const units = {
-        egp: { id: 'egp' },
-        eur: { id: 'eur' },
-        usd: { id: 'usd' },
-        gbp: { id: 'gbp' },
-        jpy: { id: 'jpy' },
-        aed: { id: 'aed' },
-      };
-
-      const unitArray = Object.values(units);
-
-      beforeEach(() => {
-        converter = new Converter({ units });
-        converter.convertVector = async () =>
-          unitArray.map((unit) => ({
-            amount: 1,
-            unit,
-          }));
-      });
-
-      describe('mainUnit, secondUnit:', () => {
-        it('Puts the main/second units at the beginning of the results array', async () => {
-          // Converting from main unit -> put secondary unit first
-          // Converting from any other unit -> put main unit first
-          const mainUnit = units.jpy;
-          const secondUnit = units.gbp;
-          converter.controllers.mainUnit = { get: async () => mainUnit };
-          converter.controllers.secondUnit = { get: async () => secondUnit };
-
-          for (let unit of unitArray) {
-            const conversions = await converter.convert({
-              amount: 1,
-              unit,
-            });
-
-            if (unit !== mainUnit) {
-              expect(conversions[0].unit).toBe(mainUnit);
-            } else {
-              expect(conversions[0].unit).toBe(secondUnit);
-            }
-          }
-        });
-      });
-
-      describe('featured units:', () => {
-        it('Puts featured units at the beginning of the results array', async () => {
-          const featuredUnits = [units.jpy, units.gbp, units.aed];
-          converter.controllers.featuredUnits = {
-            get: async () => featuredUnits,
-          };
-
-          for (let convertTarget of [units.usd, units.jpy]) {
-            const conversions = await converter.convert({
-              amount: 1,
-              unit: convertTarget,
-            });
-
-            const featuredValues = conversions.slice(0, featuredUnits.length);
-            expect(featuredValues).toEqual(
-              expect.arrayContaining([
-                ...featuredUnits.map((unit) =>
-                  expect.objectContaining({
-                    unit,
-                  })
-                ),
-              ])
-            );
-          }
-        });
-
-        it('Puts main/second unit before featured units when both are defined', async () => {
-          const mainUnit = units.usd;
-          const secondUnit = units.egp;
-          const featuredUnits = [units.jpy, units.gbp, units.aed];
-
-          const controllerValues = {
-            mainUnit,
-            secondUnit,
-            featuredUnits,
-          };
-
-          Object.keys(controllerValues).forEach((controller) => {
-            converter.controllers[controller] = {
-              get: async () => controllerValues[controller],
-            };
-          });
-
-          for (let convertTarget of [
-            units.usd,
-            units.egp,
-            units.jpy,
-            units.eur,
-          ]) {
-            const conversions = await converter.convert({
-              amount: 1,
-              unit: convertTarget,
-            });
-
-            const topUnit = convertTarget === mainUnit ? secondUnit : mainUnit;
-            expect(conversions.slice(0, featuredUnits.length + 1)).toEqual(
-              expect.arrayContaining([
-                expect.objectContaining({ unit: topUnit }),
-                ...featuredUnits.map((unit) =>
-                  expect.objectContaining({ unit })
-                ),
-              ])
-            );
-          }
-        });
-      });
-    });
   });
 });

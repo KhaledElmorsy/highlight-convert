@@ -11,15 +11,14 @@
  */
 
 /**
- * @template {Unit} U 
+ * @template {Unit} U
  * @typedef {typeof import('./Converter').default<U>} ConverterConstructor<U>
  */
 
 /**
- * @template {Unit} U 
- * @typedef {ConstructorParameters<ConverterConstructor<U>>['0']} ConverterParamters<U> 
+ * @template {Unit} U
+ * @typedef {ConstructorParameters<ConverterConstructor<U>>['0']} ConverterParamters<U>
  */
-
 
 /**
  * @template {Unit} U
@@ -35,7 +34,7 @@
 
 /**
  * @template {Unit} U
- * @typedef {ValueVector<U> & {convert: () => ReturnType<Converter<U>['convert']>}} Value<U> A value vector with a 
+ * @typedef {ValueVector<U> & {convert: () => ReturnType<Converter<U>['convert']>}} Value<U> A value vector with a
  * method, `convert`, that returns equivalent `Values` of relevant units.
  */
 
@@ -44,4 +43,11 @@
  * @typedef {Object} Match<U> A matched value returned by a converter
  * @prop {[number, number]} range Start and end (excl.) indices of the match in the input string, including the number.
  * @prop {Value<U>} value Unit and amount of the matched value
+ */
+
+/** @typedef {'@settings/Controller/Controller'} Controller */
+
+/**
+ * @template {Unit} U
+ * @typedef {{[label: string]: () => Promise<U['id']>}} labelDefaults<U>
  */

@@ -1,1 +1,1 @@
-export { default as Currency } from './currency/Currency'
+export { createConverter } from './createConverter/createConverter';
