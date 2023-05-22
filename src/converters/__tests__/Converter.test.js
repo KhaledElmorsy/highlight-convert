@@ -113,7 +113,7 @@ describe('match():', () => {
     const string = 'For 100 usd - gbp';
     const defaultMatches = await converter.match(string);
     expect(defaultMatches.length).toBe(2);
-    
+
     const matchesWithNumbers = await withNumberConverter.match(string);
     expect(matchesWithNumbers.length).toBe(1);
 
@@ -145,14 +145,47 @@ describe('match():', () => {
   });
 });
 
+describe('convertAll()', () => {
+  it('Converts the input vector to each unit with convertVector() and returns an array with the results', async () => {
+    converter.convertVector = jest.fn(async (vector, unit) => ({
+      unit,
+      amount: 1,
+    }));
+
+    const inputVector = {
+      amount: 10,
+      unit: mockUnitsMap.dollar,
+    };
+
+    const conversions = await converter.convert(inputVector);
+
+    mockUnits.map((unit, i) => {
+      expect(converter.convertVector).toHaveBeenNthCalledWith(
+        i + 1,
+        inputVector,
+        unit
+      );
+    });
+
+    expect(conversions).toEqual(
+      expect.arrayContaining(
+        mockUnits.map((unit) => expect.objectContaining({ unit, amount: 1 }))
+      )
+    );
+  });
+});
+
 describe('convert():', () => {
   it('Returns an array of value objects, each with a "convert" method', async () => {
-    const convertedVectors = mockUnits.map((unit) => ({ unit, amount: 1 }));
-    converter.convertValue = () => convertedVectors;
+    converter.convertVector = (_, unit) => ({ unit, amount: 1 });
     const values = await converter.convert({ amount: 1, unit: mockUnits[1] });
     expect(values).toEqual(
-      convertedVectors.map((vector) =>
-        expect.objectContaining({ ...vector, convert: expect.any(Function) })
+      Object.values(mockUnitsMap).map((unit) =>
+        expect.objectContaining({
+          unit,
+          amount: 1,
+          convert: expect.any(Function),
+        })
       )
     );
   });
@@ -172,7 +205,7 @@ describe('convert():', () => {
 
       beforeEach(() => {
         converter = new Converter({ units });
-        converter.convertValue = async () =>
+        converter.convertVector = async () =>
           unitArray.map((unit) => ({
             amount: 1,
             unit,

@@ -104,7 +104,9 @@ export default class Converter {
    * @returns {boolean}
    */
   filterNumberless(match) {
-    return match.data.numLeft !== undefined || match.data.numRight !== undefined;
+    return (
+      match.data.numLeft !== undefined || match.data.numRight !== undefined
+    );
   }
 
   /**
@@ -178,12 +180,25 @@ export default class Converter {
   }
 
   /**
-   * Strictly convert a value vector to vectors of the converter's different units.
+   * Convert a value vector to another a vector of a different unit.
    * @abstract
    * @param {ValueVector<U>} value
+   * @param {U} unit
+   * @returns {Promise<ValueVector<U>>}
+   */
+  async convertVector(value, unit) {}
+
+  /**
+   * Convert a vector to an array of vectors of multiple units.
+   * @param {ValueVector<U>} inputVector
+   * @param {U[]} units
    * @returns {Promise<ValueVector<U>[]>}
    */
-  async convertValue(value) {}
+  async convertAll(inputVector, units) {
+    return await Promise.all(
+      units.map((unit) => this.convertVector(inputVector, unit))
+    );
+  }
 
   /**
    * Convert a value vector, `{unit: Unit, amount: number}` to an array of values.
@@ -197,20 +212,21 @@ export default class Converter {
    * @returns {Promise<Value<U>[]>}
    */
   async convert(inputVector) {
-    const convertedVectors = await this.convertValue(inputVector);
+    const convertedVectors = await this.convertAll(inputVector, this.units);
     const values = convertedVectors.map((vector) => this.createValue(vector));
-    
+
     const controllers = this.controllers;
 
     // Map relevant controllers to their values current values (if the controller exists)
-    const { featuredUnits, mainUnit, secondUnit } =
-      await Object.entries(controllers).reduce(
-        async (acc, [key, controller]) => ({
-          ...(await acc),
-          [key]: await controller?.get?.(),
-        }),
-        Promise.resolve({})
-      );
+    const { featuredUnits, mainUnit, secondUnit } = await Object.entries(
+      controllers
+    ).reduce(
+      async (acc, [key, controller]) => ({
+        ...(await acc),
+        [key]: await controller?.get?.(),
+      }),
+      Promise.resolve({})
+    );
 
     // All the transformers accept values/conversions as their first argument
     function curry(t, ...args) {
@@ -220,7 +236,10 @@ export default class Converter {
     // [Test, Transformation]: Test passes ==> Apply transformation
     const transformations = [
       [controllers.featuredUnits, curry(featureUnits, featuredUnits)],
-      [controllers.mainUnit, curry(moveMainUnits, inputVector, mainUnit, secondUnit)],
+      [
+        controllers.mainUnit,
+        curry(moveMainUnits, inputVector, mainUnit, secondUnit),
+      ],
     ];
 
     return transformations.reduce((values, [test, callback]) => {

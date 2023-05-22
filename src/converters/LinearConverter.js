@@ -41,11 +41,11 @@ export default class LinearConverter extends Converter {
    * @param {ValueVector} vector
    * @returns {Promise<ValueVector[]>}
    */
-  async convertValue(vector) {
+  async convertAll(vector, units) {
     const { amount } = vector;
     const rates = await this.getRates();
     const scalingFactor = amount / rates[vector.unit.id];
-    return this.units.map((unit) => ({
+    return units.map((unit) => ({
       unit,
       amount: scalingFactor * rates[unit.id],
     }));
