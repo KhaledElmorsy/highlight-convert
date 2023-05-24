@@ -1,5 +1,9 @@
 import temperature, { unitMap } from './temperature';
-import { matchTester, conversionTester } from '@/domains/test-utils';
+import {
+  matchTester,
+  conversionTester,
+  validateRenderSettings,
+} from '@/domains/test-utils';
 
 it.each([
   ['42.7 C', [{ c: 42.7 }]],
@@ -39,10 +43,7 @@ describe('Render Settings', () => {
     });
   });
 
-  it('Passes valid default IDs', () => {
-    const { mainUnitID, secondaryUnitID } = renderSettings;
-    [mainUnitID, secondaryUnitID].forEach((id) => {
-      expect(Object.hasOwn(unitMap, id)).toBeTruthy();
-    });
+  it('Returns valid values', () => {
+    validateRenderSettings(renderSettings, unitMap);
   });
 });

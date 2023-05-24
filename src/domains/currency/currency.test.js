@@ -1,5 +1,5 @@
 import currency, { getRates, cachedRates, units } from './currency';
-import { matchTester } from '../test-utils';
+import { matchTester, validateRenderSettings } from '../test-utils';
 
 const storedRates = { usd: 1, egp: 30, gbp: 0.8 };
 jest.mock('./util', () => ({
@@ -97,12 +97,7 @@ describe('Render Settings', () => {
       });
     });
   });
-  describe('Default Values', () => {
-    it('Returns valid default values for each setting', () => {
-      const { mainUnitID, secondaryUnitID, featuredUnitIDs } = renderSettings;
-      [mainUnitID, secondaryUnitID, ...featuredUnitIDs].forEach((id) => {
-        expect(Object.hasOwn(unitMap, id)).toBeTruthy();
-      });
-    });
+    it('Returns valid values', () => {
+      validateRenderSettings(renderSettings, unitMap)
   });
 });
