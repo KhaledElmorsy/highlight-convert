@@ -1,7 +1,8 @@
 import units from './data/units';
-import controllers from './controllers';
 import { getStoredRates } from './util';
-import LinearConverter from '@converters/LinearConverter';
+import createDomain from '../createDomain';
+
+export { units }; // For testing
 
 /** Currently saved rates */
 export const cachedRates = {}; // Extracted to be accessible, and thus, mockable during testing
@@ -27,4 +28,22 @@ export async function getRates() {
   return rates;
 }
 
-export default new LinearConverter({ units, controllers, getRates });
+const { domain: currency, controllers } = createDomain({
+  units,
+  converterConfig: {
+    type: 'LinearConverter',
+    setup: { getRates },
+  },
+  id: 'currency',
+  renderConfig: {
+    featuredUnitIDs:  ['usd', 'egp', 'gbp', 'eur'],
+    mainUnitID: 'egp',
+    secondaryUnitID: 'usd',
+    unitTemplates: units.reduce((acc, { id, name, symbol: { alt } }) => {
+      acc[id] = { title: `${alt} ${name}`, subtitle: id.toUpperCase() };
+      return acc;
+    }, {}),
+  },
+});
+export { controllers };
+export default currency;
