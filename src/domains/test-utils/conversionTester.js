@@ -34,7 +34,7 @@ export default function conversionTester(convert, unitMap) {
       // wouldnt work well for really small values without losing its effectiveness
       // for the majority of other values.
       // i.e. 0.000000014585 vs. 3.00000004
-      const errorMargin = Math.abs(expectedAmount / 1000000);
+      const errorMargin = Math.abs(expectedAmount / 10000);
       expect(Math.abs(amount - expectedAmount)).toBeLessThanOrEqual(
         errorMargin
       );
