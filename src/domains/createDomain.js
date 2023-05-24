@@ -10,7 +10,7 @@ export const registeredIDs = new Set();
  * 
  * Dependencies are initlialized based on the specified configuration, and relevant 
  * controller instances are returned in a `controllers` object.
- * @template {Domain} U
+ * @template {Unit} U
  * @template {ConverterTypeName<U>} cType
  * @param {object} args
  * @param {string} args.id

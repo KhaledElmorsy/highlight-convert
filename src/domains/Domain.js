@@ -3,7 +3,7 @@
  *  - *Match* the domain's units in an input string.
  *  - *Convert* an amount of a domain unit to the rest of its units.
  *  - Providing *render settings* to customize how values and conversions are rendered.
- * @template {Domain} U
+ * @template {Unit} U
  */
 export default class Domain {
   /**
