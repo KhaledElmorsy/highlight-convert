@@ -18,11 +18,11 @@ import { compactUnit } from '@util/misc';
 export default function createRenderSettings({
   units,
   id,
-  groups,
+  groups = [],
   mainUnitID,
   secondaryUnitID,
-  featuredUnitIDs,
-  unitTemplates,
+  featuredUnitIDs = [],
+  unitTemplates = {},
 }) {
   const mapKey = mapKeys.new(id);
   const area = 'sync'; // Sync all controllers
