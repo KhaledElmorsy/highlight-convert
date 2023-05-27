@@ -15,9 +15,14 @@ function PageConversions({ conversions }) {
   return (
     <>
       {renders
-        ? conversions.map(({ range, values }) => (
-            <Conversion key={Date.now()} {...{ range, values }} />
-          ))
+        ? conversions.map(
+            ({ domRange: range, values, inputValue, renderSettings }) => (
+              <Conversion
+                key={Date.now()}
+                {...{ range, values, inputValue, renderSettings }}
+              />
+            )
+          )
         : null}
     </>
   );

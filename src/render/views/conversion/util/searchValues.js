@@ -1,10 +1,11 @@
 export default function searchValues(values, query) {
-  const hasName = !!values[0].unit.name;
+  if (!query) return values;
+
   const process = (str) => str.toLowerCase();
   const processedQuery = process(query);
   const processedValues = values.map(({ unit: { name, id } }, index) => ({
     id: process(id),
-    name: hasName ? process(name) : null,
+    name: name !== undefined ? process(name) : '',
     index,
   }));
 
@@ -14,14 +15,13 @@ export default function searchValues(values, query) {
   const searchResultIndices = processedValues
     .filter(
       ({ name, id }) =>
-        (hasName && name.includes(processedQuery)) ||
-        id.includes(processedQuery)
+        name.includes(processedQuery) || id.includes(processedQuery)
     )
     .sort((a, b) => {
-      const closerName = !hasName ? 0 : compareStart(a.name, b.name);
+      const closerName = compareStart(a.name, b.name);
       const closerID = compareStart(a.id, b.id);
       return closerName || closerID;
     });
 
-  return searchResultIndices.map(({index}) => values[index]);
+  return searchResultIndices.map(({ index }) => values[index]);
 }

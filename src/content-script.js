@@ -28,7 +28,7 @@ function getMatches() {
       ({ node, conversions }) => {
         return conversions.flatMap((conversion) => {
           const conversionRange = new Range();
-          const [start, end] = conversion.match.range;
+          const [start, end] = conversion.range;
           conversionRange.setStart(node, start);
           conversionRange.setEnd(node, end);
 
@@ -37,12 +37,12 @@ function getMatches() {
             conversionRange.compareBoundaryPoints(2, selectedRange) <= 0; // 2: Range.END_END
 
           if (!insideSelection) return [];
-          conversion.range = conversionRange;
+          conversion.domRange = conversionRange;
           return conversion;
         });
       }
     );
-      renderConversions(conversionsToRender)
+    renderConversions(conversionsToRender);
   });
 }
 

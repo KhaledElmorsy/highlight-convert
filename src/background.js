@@ -1,36 +1,44 @@
-import { Currency } from './converters';
+import getDomains from './appDomains';
 
 /** @typedef {Match} */
 
-const converters = [Currency];
-
 chrome.runtime.onConnect.addListener((port) => {
-  let processedNodes;
-
   port.onMessage.addListener(async (message) => {
     if (message.type === 'process') {
+      /** @type {{strings: string[]}} */
       const { strings } = message;
+      const domains = await getDomains();
 
-      const matchPromiseArrays = strings.map(async (string) => {
-        const matches = (
-          await Promise.all(converters.map((conv) => conv.match(string)))
-        ).flat();
-
-        const conversions = await Promise.all(
-          matches.flat().map((match) => match.value.convert())
+      // Map each string to a set of conversions and their relevant associated data.
+      const stringConversions = await Promise.all(strings.map(async (string) => {
+        const domainMatches = await Promise.all(
+          domains.map((domain) => domain.match(string))
         );
 
-        return conversions.map((values, i) => ({
-          values,
-          match: matches[i],
-        }));
-      });
+        // Map each match subarray to its `values`, `range`, and its parent domain's 
+        // `renderSettings`
+        const domainConversions = await Promise.all(
+          domainMatches.map(
+            async (matchArray, i) =>
+              await Promise.all(
+                matchArray.map(async (match) => ({
+                  inputValue: match.value,
+                  range: match.range,
+                  renderSettings: await domains[i].getRenderSettings(),
+                  values: match.value.convert
+                    ? await match.value.convert()
+                    : await domains[i].convert(match.value),
+                }))
+              )
+          )
+        );
 
-      processedNodes = await Promise.all(matchPromiseArrays);
+        return domainConversions.flat();
+      }));
 
       port.postMessage({
         type: 'processed',
-        data: processedNodes,
+        data: stringConversions,
       });
     }
   });

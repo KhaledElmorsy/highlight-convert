@@ -4,6 +4,7 @@
     "paths": {
       "@util/*": ["src/util/*"],
       "@converters/*": ["src/converters/*"],
+      "@domains/*": ["src/domains/*"],
       "@settings/*": ["src/settings/*"],
       "@render/*": ["src/render/*"],
       "@/*": ["src/*"],

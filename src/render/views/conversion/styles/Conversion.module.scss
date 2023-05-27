@@ -35,25 +35,57 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     min-width: 0px;
     width: auto;
     height: 3em;
-    overflow: hidden;
 
     font-size: 14px;
-    
+
     cursor: pointer;
-    
+
     border-radius: 9px;
-    backdrop-filter: blur(17px);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-    background-color: rgba(255, 255, 255, 0.5);
 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 
-    @include animate.slide($y: 50%, $props: 200ms $ease-custom , $extend: enable_pointer 300ms);
     transition: 500ms $ease-custom;
     will-change: height, max-width;
+
+    $slide-distance: 20px;
+    $slide-in-props: 500ms $ease-custom;
+
+    /*
+     There are two layers of backdrop blur:
+        - Bubble -> Background
+        - Group Title -> Group rows
+      The problem is that backdrop filter's don't stack in an intuitive sense. 
+      If the bubble applies a backdrop filter then its descendents can't apply 
+      filters to each other.
+      -Example: https://codepen.io/kelmorsy/pen/NWOmwxK?
+      
+      To mitigate this with relatively little overhead, the outer blur was moved to a psuedo 
+      element attached to the bubble, taking the effect out of the bubble's main content heirarchy.
+      
+      The caveat is the bubble is now an ancestor of the element applying the main blur, making it 
+      a backdrop root candidate. If it has an opacity < 1 it becomes the backdrop root,  breaking 
+      the blur for anything behind it. An we can't have nice fade animations without changing the opacity.
+      So opacity animations are applied directly to the psuedo element and duplicated for the bubble's 
+      contents (.conversions), emulating a single animation. This is implemented for both in/out animations.
+    */
+
+    &::before {
+      backdrop-filter: blur(17px);
+      content: '';
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: inherit;
+      z-index: -1;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      background-color: rgba(255, 255, 255, 0.5);
+      @include animate.slide($y: $slide-distance, $props: $slide-in-props , $extend: enable_pointer 300ms);
+    }
 
     &:hover:not(.expanded) {
       transform: translateY(3%);
@@ -68,12 +100,18 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     }
 
     &.out:not(.expanded) {
-      @include animate.slide($y: 40%, $props: 200ms reverse);
+      &::before, .conversions {
+        @include animate.slide($y: $slide-distance, $props: 200ms reverse);
+      }
+
       pointer-events: none;
     }
 
     &.out.expanded {
-      @include animate.slide($y: 10%, $props: 300ms reverse);
+      &::before, .conversions {
+        @include animate.slide($y: 10%, $props: 300ms reverse);
+      }
+
       height: 0;
       max-width: 100px;
     }
@@ -87,31 +125,59 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
       margin: 0 0;
 
       display: flex;
+      gap: 15px;
       flex-grow: 0;
       flex-direction: column;
       justify-content: start;
       align-items: start;
-      gap: 14px;
 
       font-family: 'DM Sans', Arial, Helvetica, sans-serif;
       color: black;
+      @include animate.slide($y: $slide-distance, $props: $slide-in-props , $extend: enable_pointer 300ms);
 
       transition: 300ms ease-out, flex-grow 1000ms;
     }
-    
+
     &.expanded .conversions {
       overflow-y: auto;
       overflow-x: hidden;
       flex-grow: 1;
       margin: 1em 0;
 
-      @for $i from 2 to 100 {
-        $delay: 40;
+      .group {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
 
-        &>*:nth-child(#{$i}) {
+        .groupTitle {
+          margin: 0;
+          margin-bottom: 5px;
+          color: dimgray;
+          position: sticky;
+          top: 3px;
+          z-index: 1;
+          padding: 5px 8px;
+          box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.4);
+          background-color: rgba(whitesmoke, 0.7);
+          backdrop-filter: blur(5px);
+          border-radius: 5px;
+        }
+
+        .row {
+          margin: 4px 0;
+        }
+      }
+
+      @for $i from 1 to 100 {
+        $delay: 40;
+        $initial-delay: 100;
+
+        & .row:nth-child(#{$i}) {
           $child-delay: $i*$delay;
           $max-delay: $delay*20;
-          @include animate.slide($x: 30px, $props: 250ms ease-out both #{math.min($child-delay, $max-delay)}ms);
+
+          @include animate.slide($x: 30px, $props: 250ms ease-out both #{$initial-delay + math.min($child-delay, $max-delay)}ms);
         }
       }
     }
@@ -122,7 +188,7 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
       padding: 6px 4px;
       margin: 0;
       will-change: height;
-      @include animate.property(height, 0px, 40px, 1500ms cubic-bezier(.1,.47,.16,.99) both);
+      @include animate.property(height, 0px, 40px, 1500ms cubic-bezier(.1, .47, .16, .99) both);
 
       display: grid;
       place-content: center;
@@ -147,7 +213,7 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     padding: max(6px, 10%) max(3px, 5%);
 
     border-radius: 3px;
-    background-color: rgba(32, 178, 171, 0.2);
+    background-color: rgba(32, 178, 171, 0.1);
 
     @include animate.slide($y: 30%, $props: 200ms $ease-out-circular forwards);
     transition: 300ms ease-out;
@@ -159,12 +225,12 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     &:hover {
       opacity: 0.4
     }
-    
+
     // Extended invisible hover area between range and bubble for the mouse to move
     // through without hiding the bubble
     &::after {
       display: none;
-      
+
       content: "";
       position: absolute;
       left: 0;

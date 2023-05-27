@@ -6,19 +6,40 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 
 /**
  * An expandable and searchable popup that appears when the unit is hovered on the page.
- * @param {Range} range
- * @param {Value[]} values
- * @param {Value<any>} defaultValue
+ * @param {object} props
+ * @param {Range} props.ange
+ * @param {ValueVector<Unit>[]} props.values
+ * @param {ValueVector<Unit>} props.inputValue
+ * @param {ConversionRenderSettings<Unit>} props.renderSettings
  */
-export function Conversion({ range, values }) {
+export function Conversion({
+  range,
+  values,
+  inputValue,
+  renderSettings: {
+    unitTemplates,
+    mainUnitID,
+    secondaryUnitID,
+    featuredUnitIDs,
+    groups,
+  },
+}) {
   const bubble = useRef();
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
-  const [renderedConversions, setRenderedConversions] = useState([values[0]]);
+
+  const topConversion = (() => {
+    const topUnitID =
+      inputValue.unit.id === mainUnitID ? secondaryUnitID : mainUnitID;
+    return values.find((value) => value.unit.id === topUnitID);
+  })();
+
+  const [renderedConversions, setRenderedConversions] = useState(
+    /** @type {ValueVector<Unit>[]} */ ([topConversion])
+  );
 
   useEffect(() => {
-    if (!expanded) return;
     setRenderedConversions(
       search === '' ? values : searchValues(values, search)
     );
@@ -33,7 +54,7 @@ export function Conversion({ range, values }) {
 
   // Render all conversions when expanded
   useEffect(() => {
-    setRenderedConversions(expanded ? values : [values[0]]);
+    setRenderedConversions(expanded ? values : [topConversion]);
   }, [expanded]);
 
   // Reset after hiding
@@ -126,12 +147,109 @@ export function Conversion({ range, values }) {
   const hoverExtensionPosition =
     bubblePosition.top !== undefined ? { '--top': 0 } : { '--bottom': 0 };
 
+  /**
+   * Map a unit to its defined or default {@link UnitConversionTemplate unitTemplate}.
+   *
+   * #### Defaults, 
+   * *Also defined {@link ConversionRenderSettings.unitTemplates here}*
+   *
+   * With name: `{title: unit.name, subtitle: unit.id}`
+   *
+   * Without name: `{title: unit.id}`
+   * @param {Unit} inputUnit
+   * @param {UnitConversionTemplate} unitTemplate
+   * @returns {UnitConversionTemplate}
+   */
+  function mapUnitTemplate({ id, name }, unitTemplates) {
+    const hasName = name !== undefined;
+    return (
+      unitTemplates[id] ??
+      (hasName ? { title: name, subtitle: id } : { title: id })
+    );
+  }
+
+  /**
+   * Map a `value` value to a {@link Value} component, mapping its `unit` to its 
+   * {@link UnitConversionTemplate unit template}
+   * 
+   * Inlined.
+   * @param {ValueVector<Unit>} value
+   * @returns {preact.JSX.Element}
+   */
+  function Row({ unit, amount }) {
+    return (
+      <div className={styles.row}>
+        <Value
+          key={unit.id}
+          amount={amount}
+          {...mapUnitTemplate(unit, unitTemplates)}
+        />
+      </div>
+    );
+  }
+
+  /**
+   * Map a {@link UnitGroup group} of values to a wrapped set of elements.
+   *
+   * Inlined.
+   * @param {ValueVector<Unit>[]} values
+   * @param {string} [title]
+   * @param {string} [key] Key incase of group arrays
+   * @returns {preact.JSX.Element}
+   */
+  function Group(values, title = '', key = title) {
+    return (
+      <div key={key} className={styles.group}>
+        {title ? <p className={styles.groupTitle}>{title}</p> : null}
+        {values.map((value) => Row(value))}
+      </div>
+    );
+  }
+
+  /**
+   * Create and return of values from an array IDs of units that
+   * should be featured.
+   * 
+   * Inlined.
+   * @param {Unit['id'][]} featuredUnitIDs
+   * @param {ValueVector<Unit>[]} values
+   * @returns {preact.JSX.Element}
+   */
+  function FeaturedUnits(featuredUnitIDs, values) {
+    const featuredValues = values.filter(({ unit: { id } }) =>
+      featuredUnitIDs.includes(id)
+    );
+    return Group(featuredValues, 'Favourites');
+  }
+
+  /**
+   * Render {@link UnitGroup groups} of units according to the  the
+   * passed {@link ConversionRenderSettings render settings} value.
+   * @param {UnitGroup[]} groups
+   * @param {ValueVector<Unit>[]} values
+   * @returns {preact.JSX.Element[]}
+   */
+  function renderGroupArray(groups, values) {
+    return groups
+      .map(({ name, unitIDs }) => {
+        return {
+          name,
+          values: unitIDs.map((id) =>
+            values.find(({ unit }) => unit.id === id)
+          ),
+        };
+      })
+      .map(({ name, values }, i) =>
+        Group(values, name, (name ?? '') + i)
+      );
+  }
+
   return (
     <div
       className={styles.container}
       style={{ ...rangeExtents }}
       onMouseEnter={() => setVisible(true)}
-      // onMouseLeave={hideBubble}
+      onMouseLeave={hideBubble}
     >
       <div
         className={`${styles.hoverArea} ${
@@ -150,9 +268,16 @@ export function Conversion({ range, values }) {
             <p className={styles.search}>{search}</p>
           ) : null}
           <div className={styles.conversions}>
-            {renderedConversions.map((v) => (
-              <Value {...v} />
-            ))}
+            {!expanded || search
+              ? Group(renderedConversions, '', 'search-results')
+              : [
+                  featuredUnitIDs.length
+                    ? FeaturedUnits(featuredUnitIDs, values)
+                    : null,
+                  groups.length
+                    ? renderGroupArray(groups, values)
+                    : Group(values, '', 'all-units'),
+                ]}
           </div>
         </div>
       ) : null}

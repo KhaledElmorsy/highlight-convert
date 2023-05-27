@@ -8,3 +8,9 @@
  * - `> 0`
  * - `< max - min // Width`
  */
+
+
+/**
+ * @template {Unit} U
+ * @typedef {import("@domains/Domain").default<U>} Domain<U>
+ */
