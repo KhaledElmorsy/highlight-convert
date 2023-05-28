@@ -4,8 +4,8 @@ import '@ui5/webcomponents/dist/Switch';
 /**
  * @typedef {object} ToggleSettings
  * @prop {object} text Text to display on the button at each state
- * @prop {string} [on=null] Default: `null` => `✓`
- * @prop {string} [off=null] Default: `null` => `-`
+ * @prop {string} [text.on=null] Default: `null` => `✓`
+ * @prop {string} [text.off=null] Default: `null` => `-`
  * @prop {string} tooltip Blank strings will be ignored
  * @prop {boolean} graphical Changes on/off colors to gren/red and overrides text with `✓`|`x`
  */
@@ -14,7 +14,7 @@ import '@ui5/webcomponents/dist/Switch';
  *
  * @param {object} args
  * @param {boolean} args.value
- * @param {(value: boolean) => void} args.onChagne
+ * @param {(value: boolean) => void} args.onChange
  * @param {ToggleSettings} args.settings
  */
 export default function toggle({
