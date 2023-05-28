@@ -25,8 +25,7 @@ const CompatibleViews = /** @type {const} */ ({
 
 /**
  * Get a preset element generator for a specific controller.
- *
- * @template {Controller} C
+ * @template {typeof Controller} C
  * @template {C['_controllerType']} CType
  * @template {CompatibleViews[CType][number]} V
  *
@@ -35,7 +34,6 @@ const CompatibleViews = /** @type {const} */ ({
  *
  * @param {V} [args.viewType] The view to render the controller with.
  * @param {ViewSettings<V>} [args.viewSettings] View configuration.
- * @param {}
  */
 export default function createControllerView({
   controller,

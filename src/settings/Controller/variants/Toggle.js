@@ -15,6 +15,10 @@ export default class Toggle extends Controller {
     super({ area, key, defaultValue });
   }
 
+  /**
+   * @param {boolean} value 
+   * @returns {boolean}
+   */
   validate(value) {
     return typeof value === 'boolean';
   }

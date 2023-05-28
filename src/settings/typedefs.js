@@ -4,7 +4,6 @@
  * @prop {'local'|'session'|'sync'} area Storage area to use.
  */
 
-
 /**
  * @template T 
  * @typedef {import('@settings/Controller/Controller').default<T>} Controller 
