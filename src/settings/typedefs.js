@@ -6,10 +6,6 @@
 
 
 /**
- * @template T
- * @typedef {import('./Setting').default<T>} Setting<T>
-*/
-
-/**
- * @typedef {import('./Controller/Controller').default} Controller
+ * @template T 
+ * @typedef {import('@settings/Controller/Controller').default<T>} Controller 
  */
