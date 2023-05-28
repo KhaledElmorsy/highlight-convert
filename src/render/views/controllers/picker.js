@@ -43,7 +43,9 @@ export default function picker({
     element.textContent = mainText;
     element.setAttribute('data-index', i);
 
-    if (JSON.stringify(option) === JSON.stringify(value)) {
+    // Compare the (pre-map) option with the passed picked 'value' to set the selected option
+    const initalOption = options[i];
+    if (JSON.stringify(initalOption) === JSON.stringify(value)) {
       element.setAttribute('selected', true);
     }
 
