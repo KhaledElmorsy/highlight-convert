@@ -95,7 +95,11 @@ export default function comboBox({
   comboBoxElement.append(...children);
 
   if (!multi) {
-    comboBoxElement.setAttribute('value', areObjects ? value[main] : value);
+    const mappedValue = mapOptions(value);
+    comboBoxElement.setAttribute(
+      'value',
+      areObjects ? mappedValue[main] : mappedValue
+    );
   }
 
   comboBoxElement.addEventListener(
