@@ -1,5 +1,5 @@
 import { onAllAnimationsEnd, onAllTransitionsEnd } from '@render/util';
-import { searchValues } from './util';
+import { searchValues, mapUnitTemplate } from './util';
 import styles from './styles/Conversion.module.scss';
 import Value from './Value';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -146,27 +146,6 @@ export function Conversion({
 
   const hoverExtensionPosition =
     bubblePosition.top !== undefined ? { '--top': 0 } : { '--bottom': 0 };
-
-  /**
-   * Map a unit to its defined or default {@link UnitConversionTemplate unitTemplate}.
-   *
-   * #### Defaults, 
-   * *Also defined {@link ConversionRenderSettings.unitTemplates here}*
-   *
-   * With name: `{title: unit.name, subtitle: unit.id}`
-   *
-   * Without name: `{title: unit.id}`
-   * @param {Unit} inputUnit
-   * @param {UnitConversionTemplate} unitTemplate
-   * @returns {UnitConversionTemplate}
-   */
-  function mapUnitTemplate({ id, name }, unitTemplates) {
-    const hasName = name !== undefined;
-    return (
-      unitTemplates[id] ??
-      (hasName ? { title: name, subtitle: id } : { title: id })
-    );
-  }
 
   /**
    * Map a `value` value to a {@link Value} component, mapping its `unit` to its 
