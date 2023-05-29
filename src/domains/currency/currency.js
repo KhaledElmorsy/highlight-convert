@@ -28,6 +28,14 @@ export async function getRates() {
   return rates;
 }
 
+export const unitTemplates = units.reduce(
+  (acc, { id, name, symbol: { alt } }) => {
+    acc[id] = { title: `${alt} ${name}`, subtitle: id.toUpperCase() };
+    return acc;
+  },
+  {}
+);
+
 const { domain: currency, controllers } = createDomain({
   units,
   converterConfig: {
@@ -36,13 +44,10 @@ const { domain: currency, controllers } = createDomain({
   },
   id: 'currency',
   renderConfig: {
-    featuredUnitIDs:  ['usd', 'egp', 'gbp', 'eur'],
+    featuredUnitIDs: ['usd', 'egp', 'gbp', 'eur'],
     mainUnitID: 'egp',
     secondaryUnitID: 'usd',
-    unitTemplates: units.reduce((acc, { id, name, symbol: { alt } }) => {
-      acc[id] = { title: `${alt} ${name}`, subtitle: id.toUpperCase() };
-      return acc;
-    }, {}),
+    unitTemplates,
   },
 });
 export { controllers };

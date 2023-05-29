@@ -8,7 +8,7 @@ import conversionTests from './test-utils/conversionTests';
 
 it.each([
   ['2 liter', [{ l: 2 }]],
-  ['3.5 cups', [{ cup: 3.5 }]], // Matches plurals
+  ['3.5 cups', [{ c: 3.5 }]], // Matches plurals
   ['20 tbsp 5', [{ tbsp: 20 }]], // Prioritizes numbers on the left
   ['gallon', [{ gal: 1 }]], // Can match without a number, setting the amount to 1
   ['m3, 10cm3, 4 in3, 15 ft3', [{ m3: 1, cm3: 10, in3: 4, ft3: 15 }]], // Matches labels that include numbers
@@ -27,13 +27,6 @@ describe('Render Settings', () => {
   });
   it('Returns valid values', () => {
     validateRenderSettings(renderSettings, unitMap);
-  });
-  describe('Unit Templates', () => {
-    test('Correct cup template', () => {
-      expect(renderSettings.unitTemplates.cup).toEqual({
-        title: 'Cup', // Cup's ID isn't capitalized, but its rendered title should be
-      });
-    });
   });
   it('Returns the correct group',() => {
     expect(renderSettings.groups).toEqual(groups)

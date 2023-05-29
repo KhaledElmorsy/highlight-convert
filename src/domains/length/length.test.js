@@ -7,7 +7,7 @@ it.each([
   ['7ft 10in', [{ ft: 7 }, { in: 10 }]], // Prioritize numbers on the left
   ['Coming up on mile 200', [{ mi: 200 }]], // Can match numbers on the right
   ['A game of inches', [{ in: 1 }]], // Can match without a number, setting the amount to 1.
-  ['25 thou or 0.5 mm', [{ thou: 25 }, { mm: 0.5 }]],
+  ['25 cm or 0.5 mm', [{ cm: 25 }, { mm: 0.5 }]],
 ])('Matches length units', matchTester(length.match.bind(length), unitMap));
 
 it.each(converterTests)(

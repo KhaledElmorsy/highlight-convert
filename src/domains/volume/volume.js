@@ -9,7 +9,7 @@ export const unitMap = createUnitMap([
   ['tsp', 'Teaspoon'],
   ['tbsp', 'Tablespoon'],
   ['fl oz', 'Fluid ounce', ['oz', 'fl. oz']],
-  ['cup'],
+  ['c', 'Cup'],
   ['pt', 'Pint'],
   ['qt', 'Quart'],
   ['gal', 'Gallon'],
@@ -30,7 +30,7 @@ const rates = {
   tsp: 768,
   tbsp: 256,
   'fl oz': 128,
-  cup: 16,
+  c: 16,
   pt: 8,
   qt: 4,
   gal: 1,
@@ -42,7 +42,7 @@ export const groups = [
   { name: 'Metric', unitIDs: ['ml', 'l', 'cm3', 'm3'] },
   {
     name: 'Imperial',
-    unitIDs: ['tsp', 'tbsp', 'fl oz', 'cup', 'pt', 'qt', 'gal', 'in3', 'ft3'],
+    unitIDs: ['tsp', 'tbsp', 'fl oz', 'c', 'pt', 'qt', 'gal', 'in3', 'ft3'],
   },
 ];
 
@@ -55,12 +55,9 @@ const { domain: volumne, controllers } = createDomain({
   },
   renderConfig: {
     mainUnitID: 'ml',
-    secondaryUnitID: 'cup',
-    featuredUnitIDs: ['tsp', 'tbsp', 'cup', 'ml', 'l'],
+    secondaryUnitID: 'c',
+    featuredUnitIDs: ['tsp', 'tbsp', 'c', 'ml', 'l'],
     groups,
-    unitTemplates: {
-      cup: { title: 'Cup' },
-    },
   },
 });
 

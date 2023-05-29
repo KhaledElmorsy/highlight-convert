@@ -23,7 +23,7 @@ const rates = {
   st: 0.000157473,
 };
 
-const groups = [
+export const groups = [
   { name: 'Metric', unitIDs: ['µg', 'mg', 'g', 'kg'] },
   { name: 'Imperial', unitIDs: ['oz', 'lb', 'st'] },
 ];
