@@ -12,7 +12,7 @@ import * as views from '@render/views/controllers';
  */
 
 /**
- * @typedef {{classes?: string[]} ViewClasses Add classes to the view element
+ * @typedef {{classes?: string[]}} ViewClasses Add classes to the view element
  */
 
 /** @satisfies {Object<ControllerName, ViewName[]>} */
@@ -33,22 +33,21 @@ const CompatibleViews = /** @type {const} */ ({
  * @param {C} args.controller
  *
  * @param {V} [args.viewType] The view to render the controller with.
- * @param {ViewSettings<V>} [args.viewSettings] View configuration.
+ * @param {ViewSettings<V> & ViewClasses} [args.viewSettings] View configuration.
  */
 export default function createControllerView({
   controller,
   viewType,
-  viewSettings,
+  viewSettings = {},
 }) {
   const defaultViewType = CompatibleViews[controller._controllerType][0];
   const baseView = views[viewType ?? defaultViewType];
 
-  const { view: viewClasses } =
-    viewSettings.classes ?? {};
+  const { classes } = viewSettings;
 
   return async function createElement() {
     const controllerValue = await controller.get();
-  
+
     /** @type {ControllerView} */
     const controllerView = baseView({
       options: controller.options,
@@ -57,7 +56,11 @@ export default function createControllerView({
       settings: viewSettings,
     });
 
-    if (viewClasses) controllerView.classList.add(...viewClasses);
+    if (classes) {
+      controllerView.classList.add(
+        ...(Array.isArray(classes) ? classes : [classes]) // Avoid silently spreading passed strings.
+      );                                                  // This mistake happens when passing only one class
+    }
 
     return controllerView;
   };
