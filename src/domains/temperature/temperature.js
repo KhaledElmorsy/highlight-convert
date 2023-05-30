@@ -1,12 +1,16 @@
 import CustomConverter from '@converters/CustomConverter';
 import createDomain from '../createDomain';
+import createUnitMap from '@domains/util/createUnitMap';
 
-/** @satisfies {Object<string, Unit>} */
-export const unitMap = {
-  c: { id: 'c', name: 'Celsius', labels: ['°C', 'celsius', 'centigrade', 'C'] },
-  f: { id: 'f', name: 'Fahrenheit', labels: ['°F', 'fahrenheit', 'F'] },
-  k: { id: 'k', name: 'Kelvin', labels: ['K', 'kelvin'] },
-};
+export const unitMap = createUnitMap([
+  [
+    'c',
+    'Celsius',
+    ['°C', '° C', 'centigrade', 'degrees Celsius', 'degree Celsius'],
+  ],
+  ['f', 'Fahrenheit', ['°F', '° F', 'degrees Fahrenheit', 'degree Fahrenheit']],
+  ['k', 'Kelvin'],
+]);
 
 /** @type {Unit[]} */
 const units = Object.values(unitMap);
@@ -44,13 +48,16 @@ const { domain: temperature, controllers } = createDomain({
   renderConfig: {
     mainUnitID: 'c',
     secondaryUnitID: 'f',
-    unitTemplates: units.reduce((acc, { id, name }) => ({
-      ...acc,
-      [id]: {
-        title: name,
-        subtitle: id.toUpperCase(),
-      }
-    }), {}),
+    unitTemplates: units.reduce(
+      (acc, { id, name }) => ({
+        ...acc,
+        [id]: {
+          title: name,
+          subtitle: id.toUpperCase(),
+        },
+      }),
+      {}
+    ),
   },
 });
 

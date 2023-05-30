@@ -11,7 +11,9 @@ it.each([
     '100 F? Youre good. But if it was 100°C or 100 K then...',
     [{ f: 100 }, { c: 100 }, { k: 100 }],
   ],
+  ['Degree, °, can be next to the number °, 20° F', [{f: 20}]],
   ['0 Kelvin 101 : The coolest course', [{ k: 0 }]], // Prioritize amounts on the left
+  ['30 degrees celsius, 40 degrees fahrenheit', [{c:30, f:40}]],
   ['Kelvin C Celsius F', []], // Must have an amount.
 ])(
   'Matches temperature',
