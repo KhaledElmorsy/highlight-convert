@@ -1,28 +1,62 @@
 @use '@render/views/animations' as animate;
 @use './styles.scss' as *;
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap');
+
+// Add country flag emoji to Windows
+// Source: https://github.com/talkjs/country-flag-emoji-polyfill
+@font-face {
+  font-family: "TwemojiCountryFlags";
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067,
+    U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  src: url('./assets/fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
+// Override webcomponent fonts to use country flags
+:global(:root) {
+  --sapFontFamily: TwemojiCountryFlags, "72", "72full", Arial, Helvetica, sans-serif !important;
+}
 
 .page {
+  padding: 10px 15px;
 
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px 15px;
 
+  .settingsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
   .section {
+    margin-bottom: 10px;
     padding: 10px 15px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.7);
-    border-radius: 5px;
+
     background-color: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
 
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 10px;
 
-    @for $i from 0 to 5 {
+    @mixin sectionSlideIn($delay) {
+      @include animate.slide($x: -20%, $props: 1000ms backwards cubic-bezier(0, 0.55, 0.45, 1) $delay )
+    }
+
+    &:global(#domain-section) {
+      @include sectionSlideIn($delay: 300ms)
+    }
+
+    @for $i from 1 to 5 {
       &:nth-child(#{$i}) {
-        @include animate.slide($x: -20%, $props: 700ms 300ms*$i backwards)
+        @include sectionSlideIn($delay: 100ms*($i - 1));
+      }
+
+      &.out:nth-child(#{$i}) {
+        @include animate.slide($x: 5%, $props: 200ms 50ms*($i - 1) forwards reverse ease-in);
       }
     }
 
@@ -31,13 +65,86 @@
       font-family: Lobster, cursive;
     }
 
+    .switchContainer {
+      display: flex;
+      justify-content: space-evenly;
+      gap: 10px;
+
+      .domainContainer {
+        display: flex;
+        justify-content: start;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+
+        .button {
+          appearance: none;
+          padding: 3px;
+          position: relative;
+
+          background: white;
+          border-radius: 10px;
+          border: none;
+          box-shadow: 0 0 5px rgba(black, 0.6), 0 0 0 0px $color-main-pale;
+          
+          font-size: 28px;
+
+          user-select: none;
+          cursor: pointer;
+
+          display: grid;
+          place-items: center;
+
+          transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+          &:hover {
+            scale: 1.05;
+            box-shadow:  0 0 5px rgba(black, 0.5);
+          }
+
+          &:active {
+            scale: 1.04;
+            box-shadow: 0 0 5px rgba(black, 0.6);
+
+          }
+
+          &.selected {
+            box-shadow: 0 0 5px rgba(black, 0.6), 0 0 0 4px $color-main;
+          }
+
+          &:hover::after,
+          &:active::after {
+            content: attr(data-title);
+            
+            position: absolute;
+            top: 85%;
+            height: 15px;
+            padding: 2px 4px;
+
+            font-family: 'Didact Gothic', sans-serif;
+            font-size: 10px;
+            color: white;
+
+            background: $color-main-pale;
+            border-radius: 3px;
+
+            display: grid;
+            place-items: center;
+
+            @include animate.slide($y: -10px, $props: 500ms 2000ms backwards);
+          }
+        }
+
+
+      }
+    }
 
     .container {
       &:not(.labeled) {
         display: grid;
         place-items: center;
       }
-      
+
       &.labeled {
         display: flex;
         flex-direction: column;
@@ -50,13 +157,11 @@
         }
 
         .viewWrapper {
-          & > * {
+          &>* {
             width: 100%;
           }
         }
       }
     }
-
   }
-
 }
