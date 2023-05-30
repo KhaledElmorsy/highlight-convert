@@ -31,17 +31,25 @@ export default function matchUnit(string, label, caseSensetive = false) {
   const numberMatcher = (() => {
     const dec = '\\.(\\d+)?'; // Also accept sole decimal point
     const withCommas = '(\\d{1,3},(?=\\d))?(\\d{3},)*\\d{3}'; // 12,123 | 123,423 | 12,123,123
-    const numberMatcher = `((${withCommas})|\\d+)(${dec})?`;
+    const numberMatcher = `-?((${withCommas})|\\d+)(${dec})?`;
     return `(?<!\\d)${numberMatcher}(?!\\d)`; // No adjacent digits
   })();
 
-  const sep = '\\s?(-|\\.)?\\s?'; // Optional separators between the unit and number. '10 usd', '10.usd', '10 - usd'
-  const preNumber = `(?<${captureGroups.numLeft}>${numberMatcher})${sep}`;
-  const postNumber = `${sep}(?<${captureGroups.numRight}>${numberMatcher})`;
+
+  const horizSpace = '[^\\S\\n\\r]'; // Match the same line only. Optional whitespace between number/unit shouldn't be new lines
+  const separators = (sep) => `${horizSpace}?(${sep.join('|')})?${horizSpace}?`; // Optional separators between the unit and number. '10 usd', '10.usd', '10 - usd'
+  const numLeftSeparators = separators(['-', ',', '.'].map(escapeRegex));
+  const numRightSeparators = separators([
+    ...['.', ','].map(escapeRegex),
+    '-(?!\\d)', // Don't match the negative sign as a separator
+  ]);
+
+  const numLeft = `(?<${captureGroups.numLeft}>${numberMatcher})${numLeftSeparators}`;
+  const numRight = `${numRightSeparators}(?<${captureGroups.numRight}>${numberMatcher})`;
 
   const flags = 'dg' + (!caseSensetive ? 'i' : ''); // 'd' flag causes matches to include capture group indices
   const regex = new RegExp(
-    `(${preNumber})?(${labelMatcher})(${postNumber})?`, // Numbers are optional.
+    `(${numLeft})?(${labelMatcher})(${numRight})?`, // Numbers are optional.
     flags
   );
 
