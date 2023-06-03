@@ -1,47 +1,35 @@
-import { getIntersectingTextNodes } from '@util/selection';
 import renderConversions from '@render/views/conversion/PageConversions';
-
+import { getVisibleTextRanges, getInnerRange } from '@util/selection';
 import debounce from '@util/selection/debounce';
+
+/** @typedef {import('./background').Conversion}  Conversion */
 
 function getMatches() {
   const selection = window.getSelection();
   if (selection.isCollapsed) return;
 
   const selectedRange = selection.getRangeAt(0);
-  const textNodes = getIntersectingTextNodes(selectedRange);
+  const visibleRanges = getVisibleTextRanges(selectedRange);
 
   const serviceWorker = chrome.runtime.connect();
 
   serviceWorker.postMessage({
     type: 'process',
-    strings: textNodes.map(({ nodeValue }) => nodeValue),
+    strings: visibleRanges.map((r) => r.toString()),
   });
 
   serviceWorker.onMessage.addListener((message) => {
+    /** @type {{data: Conversion[][]}} */
     const { data: processedData } = message;
-    const nodeConversions = processedData.map((conversions, i) => ({
-      node: textNodes[i],
-      conversions,
-    }));
 
-    const conversionsToRender = nodeConversions.flatMap(
-      ({ node, conversions }) => {
-        return conversions.flatMap((conversion) => {
-          const conversionRange = new Range();
-          const [start, end] = conversion.range;
-          conversionRange.setStart(node, start);
-          conversionRange.setEnd(node, end);
-
-          const insideSelection =
-            conversionRange.compareBoundaryPoints(1, selectedRange) >= 0 && // 1: Range.START_START
-            conversionRange.compareBoundaryPoints(2, selectedRange) <= 0; // 2: Range.END_END
-
-          if (!insideSelection) return [];
-          conversion.domRange = conversionRange;
-          return conversion;
-        });
-      }
+    /** @type {Conversion & {domRange: Range}[]} */
+    const conversionsToRender = processedData.flatMap((conversions, i) =>
+      conversions.map((conv) => ({
+        ...conv,
+        domRange: getInnerRange(visibleRanges[i], conv.range[0], conv.range[1]),
+      }))
     );
+
     renderConversions(conversionsToRender);
   });
 }
