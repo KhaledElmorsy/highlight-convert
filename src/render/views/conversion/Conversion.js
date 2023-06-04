@@ -161,6 +161,7 @@ export function Conversion({
         <Value
           key={unit.id}
           amount={amount}
+          expanded={expanded}
           {...mapUnitTemplate(unit, unitTemplates)}
         />
       </div>
@@ -228,7 +229,7 @@ export function Conversion({
       className={styles.container}
       style={{ ...rangeExtents }}
       onMouseEnter={() => setVisible(true)}
-      onMouseLeave={hideBubble}
+      // onMouseLeave={hideBubble}
     >
       <div
         className={`${styles.hoverArea} ${
