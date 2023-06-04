@@ -2,6 +2,9 @@ import { render } from 'preact';
 import { Conversion } from './Conversion';
 import { useEffect, useState } from 'preact/hooks';
 import { createElement } from '../util';
+import loadCountryFlagsFont from './util/loadCountryFlagsFont';
+
+loadCountryFlagsFont();
 
 function PageConversions({ conversions }) {
   const [renders, setRender] = useState(true);
