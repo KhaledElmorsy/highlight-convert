@@ -1,13 +1,14 @@
 import { StorageItem } from '@util/chrome/storage';
 
-export const key = 'converters.currency.rates';
+export const key = 'converters.currency.storedFetchedRates';
+const storage = new StorageItem(key, chrome.storage.local);
+
 /**
  * Return conversion rates from chrome's storage or an api request.
  * @returns {Promise<Rates>}
  */
 export default async function getStoredRates() {
   /** @type {StorageItem<RateCache>} */
-  const storage = new StorageItem(key, chrome.storage.local);
   const cache = await storage.get();
 
   const today = new Date().toLocaleDateString('en-us');
