@@ -30,10 +30,8 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     position: absolute;
     bottom: calc(100% + 15px);
 
-    --initWidth: var(--expandedWidth);
-    max-width: var(--initWidth);
-    min-width: 0px;
-    width: auto;
+    width: var(--initialWidth);
+    max-width: 300px;
     height: 3em;
 
     font-size: 14px;
@@ -92,15 +90,16 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     }
 
     &.expanded {
+      width: var(--expandedWidth);
       height: var(--expandedHeight);
-      max-width: var(--expandedWidth);
-      min-width: var(--expandedMinWidth);
-
+      max-height: 200px;
       cursor: default;
     }
 
     &.out:not(.expanded) {
-      &::before, .conversions {
+
+      &::before,
+      .conversions {
         @include animate.slide($y: $slide-distance, $props: 200ms reverse);
       }
 
@@ -108,7 +107,9 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     }
 
     &.out.expanded {
-      &::before, .conversions {
+
+      &::before,
+      .conversions {
         @include animate.slide($y: 10%, $props: 300ms reverse);
       }
 
@@ -136,11 +137,27 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
       @include animate.slide($y: $slide-distance, $props: $slide-in-props , $extend: enable_pointer 300ms);
 
       transition: 300ms ease-out, flex-grow 1000ms;
+
+      $scrollbarWidth: 10px;
+
+    &::-webkit-scrollbar-thumb {
+      width: $scrollbarWidth;
+      background-color: lightgray ;
+      background-clip: padding-box;
+      border-radius: 10px;
+      border: 3px solid transparent;
     }
+
+    &::-webkit-scrollbar {
+      width: $scrollbarWidth;
+    }
+  }
 
     &.expanded .conversions {
       overflow-y: auto;
       overflow-x: hidden;
+      overscroll-behavior: contain;
+
       flex-grow: 1;
       margin: 1em 0;
 
@@ -249,5 +266,14 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     &:hover::after {
       display: block;
     }
+  }
+}
+
+.hiddenContainer {
+  visibility: hidden;
+
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }

@@ -2,7 +2,8 @@ import { onAllAnimationsEnd, onAllTransitionsEnd } from '@render/util';
 import { searchValues, mapUnitTemplate } from './util';
 import styles from './styles/Conversion.module.scss';
 import Value from './Value';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState, useLayoutEffect } from 'preact/hooks';
+import { isEmptyObject } from '@util/misc';
 
 /**
  * An expandable and searchable popup that appears when the unit is hovered on the page.
@@ -16,6 +17,7 @@ export function Conversion({
   range,
   values,
   inputValue,
+  passBubbleSize,
   renderSettings: {
     unitTemplates,
     mainUnitID,
@@ -25,9 +27,11 @@ export function Conversion({
   },
 }) {
   const bubble = useRef();
+  const hiddenContainerRef = useRef();
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
+  const [autoBubbleSize, setAutoBubbleSize] = useState({});
 
   const topConversion = (() => {
     const topUnitID =
@@ -96,28 +100,7 @@ export function Conversion({
     if (!visible) reset(); // Bubble goes from: Compact -> Expanded -> Hidden
     return reset;
   }, [expanded, visible]);
-
-  // Bubble width is animated with max-width to allow for adaptive sizing.
-  // First its max-width is set to the expanded width, then the resulting width
-  // replaces it to act as pre-expansion starting width.
-  useEffect(() => {
-    if (!visible) return;
-    onAllAnimationsEnd(bubble.current, () => {
-      const { width } = bubble.current.getBoundingClientRect();
-      bubble.current.style.setProperty('--initWidth', width + 'px');
-    });
-  }, [visible]);
-
-  // Stabilize the auto calculated post-expansion width to avoid changes when
-  // conversions are filtered to thinner results when searching
-  useEffect(() => {
-    if (!expanded) return;
-    onAllTransitionsEnd(bubble.current, () => {
-      const { width } = bubble.current.getBoundingClientRect();
-      bubble.current.style.width = width + 'px';
-    });
-  }, [expanded]);
-
+  
   // Get the size extents of the match range to render the hover area and bubble relative to it
   const rangeExtents = (({ top, left, width, height }) => ({
     width,
@@ -126,31 +109,82 @@ export function Conversion({
     left: left + window.scrollX,
   }))(range.getBoundingClientRect());
 
-  /** Max size */
-  const bubbleSize = {
-    ['--expandedWidth']: '300px',
-    ['--expandedHeight']: '200px',
+  const tempSize = useRef({});
+  useLayoutEffect(() => {
+    if (!passBubbleSize) return;
+
+    setVisible(true);
+    if (visible && !expanded) {
+      tempSize.current.initialWidth = window.getComputedStyle(
+        bubble.current
+      ).width;
+      setExpanded(true);
+    }
+    if (expanded) {
+      passBubbleSize({
+        expandedHeight: window.getComputedStyle(bubble.current).height,
+        expandedWidth: window.getComputedStyle(bubble.current).width,
+        initialWidth: tempSize.current.initialWidth,
+      });
+    }
+  }, [expanded, visible]);
+
+  const defaultBubbleSize = {
+    '--initialWidth': 'auto',
+    '--expandedWidth': 'auto',
+    '--expandedHeight': 'auto',
   };
 
-  // Ensure that the bubble doesn't clip through the document edges
-  const bubblePosition = (({ top, left, width }) => {
-    const center = left + width / 2;
-    const [bblWidth, bblHeight] = Object.values(bubbleSize).map(parseFloat);
-    const docW = parseFloat(window.getComputedStyle(document.body));
-    return {
-      ...(center < bblWidth / 2 ? { left: -left + 10 } : {}),
-      ...(center + bblWidth / 2 > docW ? { right: right - docW + 10 } : {}),
-      ...(top < bblHeight + 20 ? { top: '150%' } : {}),
-    };
-  })(rangeExtents);
+  const [bubblePosition, setBubblePosition] = useState({});
+  const [bubbleSize, setBubbleSize] = useState(defaultBubbleSize);
+
+  useLayoutEffect(() => {
+    if (isEmptyObject(autoBubbleSize) || passBubbleSize) return;
+    const { expandedWidth, initialWidth, expandedHeight } = autoBubbleSize;
+
+    setBubbleSize({
+      '--expandedHeight': expandedHeight,
+      '--expandedWidth': expandedWidth,
+      '--initialWidth': initialWidth,
+    });
+
+    // Ensure that the bubble doesn't overflow the document edges
+    const range = rangeExtents;
+    range.right = range.left + range.width;
+    const center = range.left + range.width / 2;
+
+    const docWidth = ((dS = window.getComputedStyle(document.body)) => {
+      const { width, paddingRight, marginRight, paddingLeft, marginLeft } = dS;
+      return [width, paddingRight, marginRight, paddingLeft, marginLeft]
+        .map(parseFloat)
+        .reduce((sum, length) => sum + length);
+    })();
+
+    const bubbleWidth = parseFloat(expandedWidth);
+    const bubbleHeight = parseFloat(expandedHeight);
+
+    const edgeDistance = 10;
+
+    const position = {};
+    if (range.top < bubbleHeight + edgeDistance) position.top = '150%';
+
+    if (center < bubbleWidth / 2 + edgeDistance) {
+      position.left = -range.left + edgeDistance;
+    }
+
+    if (center + bubbleWidth / 2 > docWidth - edgeDistance) {
+      position.right = -(docWidth - range.right) + edgeDistance;
+    }
+    setBubblePosition(position);
+  }, [autoBubbleSize]);
 
   const hoverExtensionPosition =
     bubblePosition.top !== undefined ? { '--top': 0 } : { '--bottom': 0 };
 
   /**
-   * Map a `value` value to a {@link Value} component, mapping its `unit` to its 
+   * Map a `value` value to a {@link Value} component, mapping its `unit` to its
    * {@link UnitConversionTemplate unit template}
-   * 
+   *
    * Inlined.
    * @param {ValueVector<Unit>} value
    * @returns {preact.JSX.Element}
@@ -189,7 +223,7 @@ export function Conversion({
   /**
    * Create and return of values from an array IDs of units that
    * should be featured.
-   * 
+   *
    * Inlined.
    * @param {Unit['id'][]} featuredUnitIDs
    * @param {ValueVector<Unit>[]} values
@@ -219,9 +253,7 @@ export function Conversion({
           ),
         };
       })
-      .map(({ name, values }, i) =>
-        Group(values, name, (name ?? '') + i)
-      );
+      .map(({ name, values }, i) => Group(values, name, (name ?? '') + i));
   }
 
   return (
@@ -229,8 +261,13 @@ export function Conversion({
       className={styles.container}
       style={{ ...rangeExtents }}
       onMouseEnter={() => setVisible(true)}
-      // onMouseLeave={hideBubble}
+      onMouseLeave={hideBubble}
     >
+      {!passBubbleSize && isEmptyObject(autoBubbleSize) ? (
+        <div className={styles.hiddenContainer} ref={hiddenContainerRef}>
+          <Conversion {...arguments[0]} passBubbleSize={setAutoBubbleSize} />
+        </div>
+      ) : null}
       <div
         className={`${styles.hoverArea} ${
           visible ? styles.extendedArea : null
