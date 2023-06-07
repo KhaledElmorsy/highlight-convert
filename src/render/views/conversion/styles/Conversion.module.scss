@@ -202,14 +202,17 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
 
     .search {
       width: 80%;
-      flex: 0 0;
+      $search-height: 30px;
+      flex: 0 0 auto;
       padding: 6px 4px;
       margin: 0;
       will-change: height;
-      @include animate.property(height, 0px, 40px, 1500ms cubic-bezier(.1, .47, .16, .99) both);
+      @include animate.property(height, 0px, $search-height, 500ms cubic-bezier(0.16, 1, 0.3, 1) both);
 
       display: grid;
       place-content: center;
+
+      overflow: clip;
 
       border: none;
       border-bottom: lightgray solid 1px;
