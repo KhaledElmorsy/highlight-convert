@@ -24,7 +24,6 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
   position: absolute;
   display: grid;
   place-items: center;
-  z-index: 15;
 
   .bubble {
     position: absolute;
@@ -44,6 +43,8 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    z-index: 999;
 
     transition: 500ms $ease-custom;
     will-change: height, max-width;
