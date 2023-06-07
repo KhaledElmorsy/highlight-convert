@@ -32,6 +32,7 @@ export default function Value({ amount, title, subtitle, expanded }) {
 
   const renderedAmount = (() => {
     switch (true) {
+      case amount === 0: return formattedAmount.compact;
       case Math.abs(amount) < 0.01:
         return formattedAmount.scientific;
       case Math.abs(amount) < 0.1:
