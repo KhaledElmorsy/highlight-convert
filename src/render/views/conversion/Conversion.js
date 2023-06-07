@@ -263,7 +263,7 @@ export function Conversion({
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={hideBubble}
     >
-      {!passBubbleSize && isEmptyObject(autoBubbleSize) ? (
+      {visible && !passBubbleSize && isEmptyObject(autoBubbleSize) ? (
         <div className={styles.hiddenContainer} ref={hiddenContainerRef}>
           <Conversion {...arguments[0]} passBubbleSize={setAutoBubbleSize} />
         </div>
