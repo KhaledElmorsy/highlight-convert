@@ -36,6 +36,9 @@ const { domain: length, controllers } = createDomain({
   converterConfig: {
     type: 'LinearConverter',
     setup: { rates },
+    options: {
+      numberRequired: true,
+    }
   },
   renderConfig: {
     mainUnitID: 'cm',
