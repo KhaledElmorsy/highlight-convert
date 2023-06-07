@@ -141,18 +141,18 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
 
       $scrollbarWidth: 10px;
 
-    &::-webkit-scrollbar-thumb {
-      width: $scrollbarWidth;
-      background-color: lightgray ;
-      background-clip: padding-box;
-      border-radius: 10px;
-      border: 3px solid transparent;
-    }
+      &::-webkit-scrollbar-thumb {
+        width: $scrollbarWidth;
+        background-color: lightgray;
+        background-clip: padding-box;
+        border-radius: 10px;
+        border: 3px solid transparent;
+      }
 
-    &::-webkit-scrollbar {
-      width: $scrollbarWidth;
+      &::-webkit-scrollbar {
+        width: $scrollbarWidth;
+      }
     }
-  }
 
     &.expanded .conversions {
       overflow-y: auto;
@@ -228,15 +228,53 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
   .hoverArea {
     position: absolute;
     box-sizing: content-box;
+    display: box;
 
-    width: 120%;
-    height: 100%;
+    width: calc(100% + 10px);
+    height: calc(100% + 0.25lh);
     padding: max(6px, 10%) max(3px, 5%);
 
-    border-radius: 3px;
-    background-color: rgba(32, 178, 171, 0.1);
+    $final-opacity: 0.125;
+    opacity: $final-opacity;
 
-    @include animate.slide($y: 30%, $props: 200ms $ease-out-circular forwards);
+    border-radius: 3px;
+    background-color: turquoise;
+
+    $fade-fly-in-duration: 400ms;
+    $strong-opacity: 0.25;
+
+    $fly: unique-id();
+    @include animate.fly($y: 15%, $name: $fly);
+
+    $fade-in: unique-id();
+
+    @include animate.animation($name: $fade-in) {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: $strong-opacity
+      }
+    }
+
+    $fade-fly-props: $fade-fly-in-duration ease-in-out;
+
+    $fade-back: unique-id();
+
+    @include animate.animation($name: $fade-back) {
+      from {
+        opacity: $strong-opacity
+      }
+
+      to {
+        opacity: $final-opacity
+      }
+    }
+
+    animation: $fly $fade-fly-props,
+    $fade-in $fade-fly-props,
+    $fade-back 200ms ease-out $fade-fly-in-duration;
     transition: 300ms ease-out;
 
     &:active {
@@ -244,7 +282,7 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
     }
 
     &:hover {
-      opacity: 0.4
+      opacity: $strong-opacity
     }
 
     // Extended invisible hover area between range and bubble for the mouse to move
