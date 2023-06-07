@@ -24,7 +24,10 @@ $ease-custom: cubic-bezier(.58, -0.02, .32, 1.02);
   position: absolute;
   display: grid;
   place-items: center;
-
+  pointer-events: none;
+  & *{
+    pointer-events: auto;
+  }
   .bubble {
     position: absolute;
     bottom: calc(100% + 15px);

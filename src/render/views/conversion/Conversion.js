@@ -28,6 +28,7 @@ export function Conversion({
 }) {
   const bubble = useRef();
   const hiddenContainerRef = useRef();
+  const hoverAreaRef = useRef();
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
@@ -100,7 +101,7 @@ export function Conversion({
     if (!visible) reset(); // Bubble goes from: Compact -> Expanded -> Hidden
     return reset;
   }, [expanded, visible]);
-  
+
   // Get the size extents of the match range to render the hover area and bubble relative to it
   const rangeExtents = (({ top, left, width, height }) => ({
     width,
@@ -256,6 +257,20 @@ export function Conversion({
       .map(({ name, values }, i) => Group(values, name, (name ?? '') + i));
   }
 
+  /**
+   * Disable pointer events on the hover area for a set duration on middle-click.
+   * @param {MouseEvent} event
+   */
+  function toggleClickThrough(event) {
+    if (event.button !== 1) return;
+    event.preventDefault();
+    hoverAreaRef.current.style.pointerEvents = 'none';
+    setTimeout(() => {
+      if (!hoverAreaRef.current) return;
+      hoverAreaRef.current.style.pointerEvents = 'all';
+    }, 4000);
+  }
+
   return (
     <div
       className={styles.container}
@@ -273,6 +288,8 @@ export function Conversion({
           visible ? styles.extendedArea : null
         }`}
         style={hoverExtensionPosition}
+        onMouseDown={toggleClickThrough}
+        ref={hoverAreaRef}
       ></div>
       {visible ? (
         <div
