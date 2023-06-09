@@ -4,7 +4,10 @@ import StorageArea from "./StorageArea"
 const storage = {
   local: new StorageArea(),
   sync: new StorageArea(),
-  session: new StorageArea()
+  session: new StorageArea(),
+  onChanged: {
+    addListener: jest.fn()
+  }
 }
 
 export default storage
