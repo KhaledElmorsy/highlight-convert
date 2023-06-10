@@ -1,0 +1,187 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Multi option selection mode Object options Can programatically change values 1`] = `
+<ui5-multi-combobox>
+  <ui5-mcb-group-item
+    text="NUMBER"
+  />
+  <ui5-mcb-item
+    additional-text="A"
+    data-index="0"
+    selected=""
+    text="INTEGER-TEST"
+  />
+  <ui5-mcb-item
+    additional-text="B"
+    data-index="1"
+    selected=""
+    text="FLOAT-TEST"
+  />
+  <ui5-mcb-group-item
+    text="STRING"
+  />
+  <ui5-mcb-item
+    additional-text="C"
+    data-index="2"
+    text="STRING-TEST"
+  />
+</ui5-multi-combobox>
+`;
+
+exports[`Multi option selection mode Object options Renders correctly 1`] = `
+<ui5-multi-combobox>
+  <ui5-mcb-group-item
+    text="NUMBER"
+  />
+  <ui5-mcb-item
+    additional-text="A"
+    data-index="0"
+    text="INTEGER-TEST"
+  />
+  <ui5-mcb-item
+    additional-text="B"
+    data-index="1"
+    text="FLOAT-TEST"
+  />
+  <ui5-mcb-group-item
+    text="STRING"
+  />
+  <ui5-mcb-item
+    additional-text="C"
+    data-index="2"
+    selected=""
+    text="STRING-TEST"
+  />
+</ui5-multi-combobox>
+`;
+
+exports[`Multi option selection mode String options Can programatically change values 1`] = `
+<ui5-multi-combobox>
+  <ui5-mcb-item
+    data-index="0"
+    selected=""
+    text="TESTA"
+  />
+  <ui5-mcb-item
+    data-index="1"
+    selected=""
+    text="TESTB"
+  />
+  <ui5-mcb-item
+    data-index="2"
+    text="TESTC"
+  />
+</ui5-multi-combobox>
+`;
+
+exports[`Multi option selection mode String options Renders correctly 1`] = `
+<ui5-multi-combobox>
+  <ui5-mcb-item
+    data-index="0"
+    text="TESTA"
+  />
+  <ui5-mcb-item
+    data-index="1"
+    text="TESTB"
+  />
+  <ui5-mcb-item
+    data-index="2"
+    selected=""
+    text="TESTC"
+  />
+</ui5-multi-combobox>
+`;
+
+exports[`Single option selection mode Object options Can programatically change values 1`] = `
+<ui5-combobox
+  value="INTEGER-TEST"
+>
+  <ui5-cb-group-item
+    text="NUMBER"
+  />
+  <ui5-cb-item
+    additional-text="A"
+    data-index="0"
+    text="INTEGER-TEST"
+  />
+  <ui5-cb-item
+    additional-text="B"
+    data-index="1"
+    text="FLOAT-TEST"
+  />
+  <ui5-cb-group-item
+    text="STRING"
+  />
+  <ui5-cb-item
+    additional-text="C"
+    data-index="2"
+    text="STRING-TEST"
+  />
+</ui5-combobox>
+`;
+
+exports[`Single option selection mode Object options Renders correctly 1`] = `
+<ui5-combobox
+  value="STRING-TEST"
+>
+  <ui5-cb-group-item
+    text="NUMBER"
+  />
+  <ui5-cb-item
+    additional-text="A"
+    data-index="0"
+    text="INTEGER-TEST"
+  />
+  <ui5-cb-item
+    additional-text="B"
+    data-index="1"
+    text="FLOAT-TEST"
+  />
+  <ui5-cb-group-item
+    text="STRING"
+  />
+  <ui5-cb-item
+    additional-text="C"
+    data-index="2"
+    text="STRING-TEST"
+  />
+</ui5-combobox>
+`;
+
+exports[`Single option selection mode String options Can programatically change values 1`] = `
+<ui5-combobox
+  value="TESTA"
+>
+  <ui5-cb-item
+    data-index="0"
+    text="TESTA"
+  />
+  <ui5-cb-item
+    data-index="1"
+    text="TESTB"
+  />
+  <ui5-cb-item
+    data-index="2"
+    text="TESTC"
+  />
+</ui5-combobox>
+`;
+
+exports[`Single option selection mode String options Renders correctly 1`] = `
+<ui5-combobox
+  value="TESTC"
+>
+  <ui5-cb-item
+    data-index="0"
+    text="TESTA"
+  />
+  <ui5-cb-item
+    data-index="1"
+    text="TESTB"
+  />
+  <ui5-cb-item
+    data-index="2"
+    text="TESTC"
+  />
+</ui5-combobox>
+`;

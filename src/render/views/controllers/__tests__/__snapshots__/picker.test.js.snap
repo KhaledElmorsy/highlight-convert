@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Object options Programatically updates values 1`] = `
+<ui5-select>
+  <ui5-option
+    additional-text="A"
+    data-index="0"
+    selected=""
+  >
+    INTEGER-TEST
+  </ui5-option>
+  <ui5-option
+    additional-text="B"
+    data-index="1"
+  >
+    FLOAT-TEST
+  </ui5-option>
+  <ui5-option
+    additional-text="C"
+    data-index="2"
+  >
+    STRING-TEST
+  </ui5-option>
+</ui5-select>
+`;
+
+exports[`Object options Renders correctly 1`] = `
+<ui5-select>
+  <ui5-option
+    additional-text="A"
+    data-index="0"
+  >
+    INTEGER-TEST
+  </ui5-option>
+  <ui5-option
+    additional-text="B"
+    data-index="1"
+    selected=""
+  >
+    FLOAT-TEST
+  </ui5-option>
+  <ui5-option
+    additional-text="C"
+    data-index="2"
+  >
+    STRING-TEST
+  </ui5-option>
+</ui5-select>
+`;
+
+exports[`String options Programatically updates values 1`] = `
+<ui5-select>
+  <ui5-option
+    data-index="0"
+    selected=""
+  >
+    TESTA
+  </ui5-option>
+  <ui5-option
+    data-index="1"
+  >
+    TESTB
+  </ui5-option>
+  <ui5-option
+    data-index="2"
+  >
+    TESTC
+  </ui5-option>
+</ui5-select>
+`;
+
+exports[`String options Renders correctly 1`] = `
+<ui5-select>
+  <ui5-option
+    data-index="0"
+  >
+    TESTA
+  </ui5-option>
+  <ui5-option
+    data-index="1"
+    selected=""
+  >
+    TESTB
+  </ui5-option>
+  <ui5-option
+    data-index="2"
+  >
+    TESTC
+  </ui5-option>
+</ui5-select>
+`;

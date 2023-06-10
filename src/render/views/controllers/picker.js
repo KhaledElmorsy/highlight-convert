@@ -1,4 +1,11 @@
-import '@ui5/webcomponents/dist/Select';
+import Select from '@ui5/webcomponents/dist/Select';
+
+/** @typedef {import('@ui5/webcomponents/dist/Option').default} Option */
+
+/**
+ * @template Value
+ * @typedef {import('./typedefs').ControllerViewExtension<Value>} ControllerViewExtension
+ */
 
 /**
  * @typedef {object} PickerSettings
@@ -21,7 +28,7 @@ import '@ui5/webcomponents/dist/Select';
  * @param {Option} args.value
  * @param {PickerSettings} [args.settings]
  * @param {(value:  Option) => void} [args.onChange]
- * @returns {HTMLElement}
+ * @returns {Select & ControllerViewExtension<Option>}
  */
 export default function picker({
   options,
@@ -32,32 +39,58 @@ export default function picker({
   } = {},
   onChange = () => {},
 }) {
+  /** @type {Select} */
   const selectElement = document.createElement('ui5-select');
-  const optionElements = options.map(mapOptions).map((option, i) => {
-    const [mainText, subText] =
-      typeof option === 'object'
+  const areObjects = typeof options[0] === 'object';
+
+  function getOptionElements(selectedValue) {
+    const optionElements = options.map(mapOptions).map((option, i) => {
+      const [mainText, subText] = areObjects
         ? [option[main], option[sub] ?? null]
         : [option, null];
 
-    const element = document.createElement('ui5-option');
-    element.textContent = mainText;
-    element.setAttribute('data-index', i);
+      /** @type {Option} */
+      const element = document.createElement('ui5-option');
+      element.textContent = mainText;
+      element.setAttribute('data-index', i); // To cross-reference he relevant option
 
-    // Compare the (pre-map) option with the passed picked 'value' to set the selected option
-    const initalOption = options[i];
-    if (JSON.stringify(initalOption) === JSON.stringify(value)) {
-      element.setAttribute('selected', true);
-    }
+      // Compare the (pre-map) option with the passed picked 'value' to set the selected option
+      const initalOption = options[i];
+      if (JSON.stringify(initalOption) === JSON.stringify(selectedValue)) {
+        element.setAttribute('selected', '');
+      }
 
-    if (subText !== null) element.setAttribute('additional-text', subText);
-    return element;
-  });
+      if (subText !== null) element.setAttribute('additional-text', subText);
+      return element;
+    });
 
-  selectElement.append(...optionElements);
+    return optionElements;
+  }
+
+  selectElement.append(...getOptionElements(value));
   selectElement.addEventListener('change', ({ detail: { selectedOption } }) => {
     const index = selectedOption.getAttribute('data-index');
     onChange(options[index]);
   });
+
+  /** @type {ControllerViewExtension<Option>} */
+  const controllerExtension = {
+    acceptVisitor(viewVisitor) {
+      viewVisitor.picker({
+        options,
+        keys: areObjects ? { main, sub } : null,
+        mapOptions,
+        element: selectElement,
+      });
+    },
+    setValue(newValue) {
+      const tempParent = document.createElement('div');
+      tempParent.append(...getOptionElements(newValue));
+      this.innerHTML = tempParent.innerHTML;
+    },
+  };
+
+  Object.assign(selectElement, controllerExtension);
 
   return selectElement;
 }

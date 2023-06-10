@@ -1,5 +1,9 @@
-import '@ui5/webcomponents/dist/Switch';
+import Switch from '@ui5/webcomponents/dist/Switch';
 
+/**
+ * @template Value
+ * @typedef {import('./typedefs').ControllerViewExtension<Value>} ControllerViewExtension
+ */
 
 /**
  * @typedef {object} ToggleSettings
@@ -11,18 +15,21 @@ import '@ui5/webcomponents/dist/Switch';
  */
 
 /**
- *
+ * Create a boolean toggle view.
  * @param {object} args
  * @param {boolean} args.value
  * @param {(value: boolean) => void} args.onChange
  * @param {ToggleSettings} args.settings
+ * @returns {Switch & ControllerViewExtension<boolean>}
  */
 export default function toggle({
   value,
   settings: { text = {}, tooltip, graphical } = {},
   onChange,
 }) {
+  /** @type {Switch} */
   const toggleEl = document.createElement('ui5-switch');
+  
   toggleEl.checked = value;
 
   if (graphical) {
@@ -38,6 +45,18 @@ export default function toggle({
   toggleEl.addEventListener('change', () => {
     onChange(toggleEl.checked);
   });
+
+  /** @type {ControllerViewExtension<boolean>} */
+  const controllerExtension = {
+    acceptVisitor(viewVisitor) {
+      viewVisitor.toggle({ element: toggleEl });
+    },
+    setValue(newValue) {
+      this.checked = newValue;
+    },
+  };
+
+  Object.assign(toggleEl, controllerExtension);
 
   return toggleEl;
 }

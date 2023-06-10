@@ -1,6 +1,11 @@
-import '@ui5/webcomponents/dist/ComboBox';
-import '@ui5/webcomponents/dist/MultiComboBox';
+import ComboBox from '@ui5/webcomponents/dist/ComboBox';
+import MultiComboBox from '@ui5/webcomponents/dist/MultiComboBox';
 import { sortObject } from '@util/misc';
+
+/**
+ * @template Value
+ * @typedef {import('./typedefs').ControllerViewExtension<Value>} ControllerViewExtension
+ */
 
 /**
  * @typedef {object} ComboBoxSettings
@@ -31,7 +36,7 @@ import { sortObject } from '@util/misc';
  * @param {Option[]} args.options
  * @param {(value: ValueType<M, Option>) => void} [args.onChange]
  * @param {ComboBoxSettings & {multi: M}} args.settings
- * @returns {HTMLElement}
+ * @returns {(M extends true ? MultiComboBox : ComboBox) & ControllerViewExtension<Option>}
  */
 export default function comboBox({
   options,
@@ -40,7 +45,7 @@ export default function comboBox({
   settings: {
     multi = false,
     keys: { main = 'name', sub = null, group = null } = {},
-    mapOptions = (option) => option
+    mapOptions = (option) => option,
   } = {},
 }) {
   const [comboboxTag, cbItemTag, cbGroupTag] = multi
@@ -51,56 +56,65 @@ export default function comboBox({
   const areObjects = typeof options[0] === 'object';
   const grouped = areObjects && group !== null;
 
-  const optionElements = options.reduce((acc, baseOption, i) => {
-    const option = mapOptions(baseOption);
-    const element = document.createElement(cbItemTag);
-    const mainText = areObjects ? option[main] : option;
-    element.setAttribute('text', mainText);
-    element.setAttribute('data-index', i);
+  function getChildren(selectedValues) {
+    const optionElements = options.reduce((acc, baseOption, i) => {
+      const option = mapOptions(baseOption);
+      const element = document.createElement(cbItemTag);
+      const mainText = areObjects ? option[main] : option;
+      element.setAttribute('text', mainText);
+      element.setAttribute('data-index', i);
 
-    if (areObjects && sub) element.setAttribute('additional-text', option[sub]);
+      if (areObjects && sub)
+        element.setAttribute('additional-text', option[sub]);
 
-    if (
-      multi &&
-      value.find(
-        (v) =>
-          !!(
-            JSON.stringify(sortObject(v)) === JSON.stringify(sortObject(baseOption)) // TODO Think about this
-          )
-      )
-    ) {
-      element.setAttribute('selected', true);
-    }
+      if (
+        multi &&
+        selectedValues.find(
+          (v) =>
+            !!(
+              (
+                JSON.stringify(sortObject(v)) ===
+                JSON.stringify(sortObject(baseOption))
+              ) // TODO Think about this
+            )
+        )
+      ) {
+        element.setAttribute('selected', '');
+      }
 
-    if (grouped) {
-      const groupName = option[group];
-      acc[groupName] ??= [];
-      acc[groupName].push(element);
-    } else {
-      acc[i] = element;
-    }
-    return acc;
-  }, {});
+      if (grouped) {
+        const groupName = option[group];
+        acc[groupName] ??= [];
+        acc[groupName].push(element);
+      } else {
+        acc[i] = element;
+      }
+      return acc;
+    }, {});
 
-  const children = !grouped
-    ? Object.values(optionElements)
-    : Object.entries(optionElements)
-        .map(([groupName, items]) => {
-          const groupElement = document.createElement(cbGroupTag);
-          groupElement.setAttribute('text', groupName);
-          return [groupElement, ...items];
-        })
-        .flat(1);
+    const optionsAndGroupElements = !grouped
+      ? Object.values(optionElements)
+      : Object.entries(optionElements)
+          .map(([groupName, items]) => {
+            const groupElement = document.createElement(cbGroupTag);
+            groupElement.setAttribute('text', groupName);
+            return [groupElement, ...items];
+          })
+          .flat(1);
+    return optionsAndGroupElements;
+  }
 
-  comboBoxElement.append(...children);
+  comboBoxElement.append(...getChildren(value));
 
-  if (!multi) {
-    const mappedValue = mapOptions(value);
+  function setSingleValue(selectedValue) {
+    const mappedValue = mapOptions(selectedValue);
     comboBoxElement.setAttribute(
       'value',
       areObjects ? mappedValue[main] : mappedValue
     );
   }
+
+  if (!multi) setSingleValue(value);
 
   comboBoxElement.addEventListener(
     'selection-change',
@@ -112,12 +126,44 @@ export default function comboBox({
       );
       const selectedOptions = indices.map((i) => options[i]);
       if (multi) {
-        onChange(selectedOptions);
+        onChange(selectedOptions, event);
       } else {
-        onChange(selectedOptions[0]);
+        onChange(selectedOptions[0], event);
       }
     }
   );
+
+  /** @type {ControllerViewExtension<Option>} */
+  const controllerExtension = {
+    acceptVisitor(viewVisitor) {
+      viewVisitor[multi ? 'multiComboBox' : 'comboBox']({
+        options,
+        keys: areObjects ? { main, sub, group } : null,
+        mapOptions,
+        element: comboBoxElement,
+      });
+    },
+    setValue(newValue) {
+      if (!multi) {
+        setSingleValue(newValue);
+      } else {
+        const updatedChildren = getChildren(newValue);
+        for (let i = 0; i < updatedChildren.length; i++) {
+          if (
+            updatedChildren[i].getAttribute('selected') ===
+            this.children[i].getAttribute('selected')
+          )
+            continue;
+          const tempParent = document.createElement('div');
+          tempParent.append(...updatedChildren);
+          this.innerHTML = tempParent.innerHTML;
+          return;
+        }
+      }
+    },
+  };
+
+  Object.assign(comboBoxElement, controllerExtension);
 
   return comboBoxElement;
 }

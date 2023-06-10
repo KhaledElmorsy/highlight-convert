@@ -1,11 +1,15 @@
-import '@ui5/webcomponents/dist/Slider';
+import Slider from '@ui5/webcomponents/dist/Slider';
 
+/**
+ * @template Value
+ * @typedef {import('./typedefs').ControllerViewExtension<Value>} ControllerViewExtension
+ */
 
 /**
  * @typedef {object} RangeSettings
- * @prop {boolean} [showTooltip=true]
- * @prop {boolean} [showTickmarks=true]
- * @prop {number} [labelInterval=1]
+ * @prop {boolean} [showTooltip=false]
+ * @prop {boolean} [showTickmarks=false]
+ * @prop {number} [labelInterval=0]
  */
 
 /**
@@ -15,31 +19,50 @@ import '@ui5/webcomponents/dist/Slider';
  * @param {number} args.value
  * @param {(value: number) => void} args.onChange
  * @param {RangeSettings} [args.settings] Added customization
- * @returns
+ * @returns {Slider & ControllerViewExtension<number>}
  */
 export default function range({
   options: { min, max, step = 1 },
   value,
   onChange,
   settings: {
-    showTooltip = true,
-    showTickmarks = true,
-    labelInterval = 1,
+    showTooltip = false,
+    showTickmarks = false,
+    labelInterval = 0,
   } = {},
 }) {
+  /** @type {Slider} */
   const sliderElement = document.createElement('ui5-slider');
-  Object.entries({ min, max, step }).forEach(([attribute, value]) =>
-    sliderElement.setAttribute(attribute, value)
-  );
 
-  sliderElement.setAttribute('value', value);
+  Object.entries({ min, max, step }).forEach(([attribute, attrValue]) => {
+    sliderElement[attribute] = attrValue;
+  });
+
+  sliderElement.value = value;
   sliderElement.addEventListener('input', () => {
     onChange(sliderElement.value);
   });
 
-  if (showTooltip) sliderElement.setAttribute('show-tooltip', true);
-  if (showTickmarks) sliderElement.setAttribute('show-tickmarks', true);
-  if (labelInterval) sliderElement.setAttribute('label-interval', labelInterval);
-  
+  Object.assign(sliderElement, {
+    showTooltip,
+    showTickmarks,
+    labelInterval
+  })
+
+  /** @type {ControllerViewExtension<number>} */
+  const controllerExtension = {
+    acceptVisitor(viewVisitor) {
+      viewVisitor.range({
+        options: { min, max, step },
+        element: sliderElement,
+      });
+    },
+    setValue(newValue) {
+      this.value = newValue;
+    },
+  };
+
+  Object.assign(sliderElement, controllerExtension);
+
   return sliderElement;
 }
