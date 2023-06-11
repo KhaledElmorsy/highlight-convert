@@ -16,7 +16,8 @@ const mapKey = mapKeys.new('popup');
 const $ = document.querySelector.bind(document);
 
 (function setHeaderBackground() {
-  const imageSrc = chrome.runtime.getURL('assets/images/popup/header/0.gif');
+  const gifIndex = Math.floor(Math.random()*10);
+  const imageSrc = chrome.runtime.getURL(`assets/images/popup/header/${gifIndex}.gif`);
   $('#title-container').style.backgroundImage = `url(${imageSrc})`;
 })();
 
