@@ -1,12 +1,12 @@
 {
 	"manifest_version": 3,
 	"name": "Highlight Convert",
-	"version": "0.1",
-	"description": "Convert units and currencies just by highlighting them",
+	"version": "0.0.1",
+	"description": "Convert units and currencies just by highlighting them.",
 	"content_scripts": [
 		{
 			"matches": [
-				"*://*/*"
+				"<all_urls>"
 			],
 			"js": [
 				"content-script.js"
@@ -20,7 +20,7 @@
 		"16": "assets/images/icons/icon16.png"
 	},
 	"action": {
-		"default_title": "Click Me",
+		"default_title": "Highlight Convert",
 		"default_popup": "popup.html"
 	},
 	"background": {
