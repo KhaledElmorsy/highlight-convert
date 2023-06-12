@@ -14,18 +14,18 @@ const captureGroups = /** @type {const} */ ({
  * @typedef {captureGroups[keyof captureGroups]} GroupNames
  * @typedef { {[group in GroupNames]: [number, number]}} Indices Start & end (excl.) indices of the capture group
  * @typedef { {[group in GroupNames]: string}} Matches
- * @typedef {Matches & {indices: Indices}} UnitMatch
+ * @typedef {Matches & {indices: Indices}} MatchData
  */
 
 /**
  * @param {string} string Input string
  * @param {string} label String to Match
  * @param {boolean} caseSensetive
- * @returns {UnitMatch[]}
+ * @returns {MatchData[]}
  */
 export default function matchUnit(string, label, caseSensetive = false) {
   const escapedLabel = escapeRegex(label);
-  const labelGroup = `(?<${captureGroups.unit}>${escapedLabel})s?`;
+  const labelGroup = `(?<${captureGroups.unit}>${escapedLabel}s?)`;
   const labelMatcher = `(?<![a-z])${labelGroup}(?![a-z])`; // No adjacent letters
 
   const numberMatcher = (() => {

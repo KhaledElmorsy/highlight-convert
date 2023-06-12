@@ -54,7 +54,10 @@ export default class Converter {
     };
   }
 
-  /** @typedef {import('./util/matching/matchUnit').UnitMatch} UnitMatch */
+  /**
+   * @typedef {import('./util/matching/matchUnit').MatchData} MatchData
+   * @typedef {{data: MatchData, unit: U, label: string}} UnitMatch
+   */
 
   /**
    * Define which unit to match, when encountering a label that's shared between
@@ -65,12 +68,9 @@ export default class Converter {
   async filterSharedLabels(match) {
     if (!this.labelDefaults) return true;
 
-    const {
-      unit,
-      data: { unit: label },
-    } = match;
-    
+    const { label, unit } = match;
     if (!Object.hasOwn(this.labelDefaults, label)) return true;
+    
     const defaultUnitID = await this.labelDefaults[label]();
     return unit.id === defaultUnitID;
   }
@@ -121,6 +121,7 @@ export default class Converter {
       unit.labels.flatMap((label) =>
         matchUnit(text, label, this.options.caseSensitive).map((match) => ({
           unit,
+          label,
           data: match,
         }))
       )

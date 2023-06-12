@@ -133,6 +133,11 @@ it('Returns the start & end (excl.) indices of the matched unit & numbers', () =
   expect(indices.unit).toEqual([9, 12]);
   expect(indices.numLeft).toEqual([5, 8]);
   expect(indices.numRight).toEqual([13, 16]);
+
+  // Include the 's' in indices for plural labels
+  const pluralTest = 'Convert 200 USDs';
+  const {indices: pluralIndices} = matchUnit(pluralTest, unit)[0];
+  expect(pluralIndices.unit).toEqual([12, 16])
 });
 
 it('Optionally matches the units letter case', () => {
