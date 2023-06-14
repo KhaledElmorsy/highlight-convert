@@ -1,4 +1,5 @@
 import matchUnit from './util/matching/matchUnit';
+import numericQuantity from 'numeric-quantity';
 
 /**
  * Create a customizable quantity coverter. Extend and override `convertUnit` for
@@ -140,7 +141,7 @@ export default class Converter {
     })();
 
     const values = filteredMatches.map(({ unit, data }) => {
-      const amount = parseFloat(data[mainNum] ?? data[otherNum] ?? 1);
+      const amount = numericQuantity(data[mainNum] ?? data[otherNum] ?? 1);
       // Merge match indices for the unit and relevant number
       const range = data.indices.unit
         .concat(data.indices[mainNum] ?? data.indices[otherNum] ?? [])

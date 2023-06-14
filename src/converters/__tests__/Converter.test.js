@@ -81,6 +81,51 @@ describe('match():', () => {
     );
   });
 
+  describe('Matches fraction amounts', () => {
+    it.each([
+      ['Forward slash', { string: '1/2 usd', amount: 0.5, range: [0, 7] }],
+      [
+        'Forward slash: negative',
+        { string: '-1/2 usd', amount: -0.5, range: [0, 8] },
+      ],
+      [
+        'Forward slash: mixed number',
+        { string: '3 1/2 usd', amount: 3.5, range: [0, 9] },
+      ],
+      [
+        'Forward slash: negative mixed number',
+        { string: '-10 1/2 usd', amount: -10.5, range: [0, 11] },
+      ],
+      ['Vulgar fraction', { string: '½ usd', amount: 0.5, range: [0, 5] }],
+      [
+        'Vulgar fraction: negative',
+        { string: '-½ usd', amount: -0.5, range: [0, 6] },
+      ],
+      [
+        'Vulgar fraction: mixed number (space separated)',
+        { string: '10 ½ usd', amount: 10.5, range: [0, 8] },
+      ],
+      [
+        'Vulgar fraction: mixed number (adjacent)',
+        { string: '3½ usd', amount: 3.5, range: [0, 6] },
+      ],
+      [
+        'Vulgar fraction: negative mixed number',
+        { string: '-10 ½ usd', amount: -10.5, range: [0, 9] },
+      ],
+    ])('%s', async (_, { string, amount, range }) => {
+      expect(await converter.match(string)).toEqual([
+        expect.objectContaining({
+          value: expect.objectContaining({
+            unit: mockUnitsMap.dollar,
+            amount,
+          }),
+          range,
+        }),
+      ]);
+    });
+  })
+
   it('Optionally performs case sensetive label matching', async () => {
     const string = 'match 100 usd not 100 USD';
     const exactConverter = new Converter({
