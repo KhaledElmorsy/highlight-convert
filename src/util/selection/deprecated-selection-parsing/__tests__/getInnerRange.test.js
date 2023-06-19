@@ -1,4 +1,4 @@
-import getInnerRange from '../getInnerRange';
+import getInnerRange from '../2.getInnerRange';
 
 const outer1HTML = '<div id ="outer1">Text<span id="inner1">Text</span></div>';
 const outer2HTML =

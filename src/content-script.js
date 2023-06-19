@@ -1,28 +1,14 @@
 import renderConversions from '@render/views/conversion/PageConversions';
-import debounce from '@util/selection/debounce';
-import mapSelectionIndices from '@util/selection/mapSelectionIndices';
+import { debounce, mapSelection } from '@util/selection';
 
 /** @typedef {import('./background').Conversion}  Conversion */
 
 function getMatches() {
-  document.removeEventListener('selectionchange', debouncedMatch);
-
-  const listen = () => {
-    // Mapping selection string indices to their DOM locations with mapSelectionIndices
-    // manipulates the document's selection object, queing selectionchange events.
-    // Defer re-observing to a new task to run after the events are flushed.
-    setTimeout(() => {
-      document.addEventListener('selectionchange', debouncedMatch);
-    }, 0);
-  };
-
   const selection = window.getSelection();
-  if (selection.isCollapsed) {
-    listen();
-    return;
-  }
 
-  const { string, positions } = mapSelectionIndices(selection);
+  if (selection.isCollapsed) return 
+
+  const { string, locations } = mapSelection(selection);
 
   const serviceWorker = chrome.runtime.connect();
   serviceWorker.postMessage({
@@ -38,20 +24,16 @@ function getMatches() {
     const conversionsToRender = processedData.flatMap((conversions, i) =>
       conversions.flatMap((conv) => {
         const [startIndex, endIndex] = conv.range;
-
-        // Positions are mapped by extending & moving a selection. Some elements 
-        // prevent an incoming selection to exntend into or around them (i.e. select
-        // elements). The section after those elements isn't mapped, so don't render it.
-        if (
-          startIndex >= positions.start.length ||
-          endIndex > positions.end.length
-        ) {
-          return [];
-        }
+        
+        const [startPosition, endPosition] = [
+          locations[startIndex],
+          locations[endIndex - 1],
+        ];
 
         const domRange = new Range();
-        domRange.setStart(...positions.start[startIndex]);
-        domRange.setEnd(...positions.end[endIndex - 1]);
+        domRange.setStart(startPosition.node, startPosition.offset);
+        domRange.setEnd(endPosition.node, endPosition.offset + 1);
+
         return {
           ...conv,
           domRange,
@@ -60,9 +42,7 @@ function getMatches() {
     );
 
     renderConversions(conversionsToRender);
-    listen();
   });
 }
 
-const debouncedMatch = debounce(getMatches, 200);
-document.addEventListener('selectionchange', debouncedMatch);
+document.addEventListener('selectionchange', debounce(getMatches, 200));

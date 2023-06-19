@@ -1,4 +1,4 @@
-import getVisibleTextRanges from '../getVisibleTextRanges';
+import getVisibleTextRanges from '../2.getVisibleTextRanges';
 import dedent from '@util/misc/dedent';
 
 HTMLElement.prototype.checkVisibility = function () {

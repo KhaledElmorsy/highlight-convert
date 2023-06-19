@@ -136,6 +136,6 @@ export default function mapSelectionIndices(selection) {
 
   return {
     string: selectionString,
-    positions: { start: positions.start, end: positions.end },
+    positions,
   };
 }

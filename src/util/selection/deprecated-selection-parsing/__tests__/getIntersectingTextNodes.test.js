@@ -1,4 +1,4 @@
-import getIntersectingTextNodes from '../getIntersectingTextNodes';
+import getIntersectingTextNodes from '../1.getIntersectingTextNodes';
 
 const testElemenHTML = `\
 <div id="outer">Text content in the container\
