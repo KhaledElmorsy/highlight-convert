@@ -102,13 +102,33 @@ export function Conversion({
     return reset;
   }, [expanded, visible]);
 
-  // Get the size extents of the match range to render the hover area and bubble relative to it
-  const rangeExtents = (({ top, left, width, height }) => ({
-    width,
-    height,
-    top: top + window.scrollY,
-    left: left + window.scrollX,
-  }))(range.getBoundingClientRect());
+  /**
+   * Calculate the size and position, relative to the document, of a range.
+   * @returns {{[prop in "width"|"height"|"top"|"left"]:string}}
+   */
+  function getRangeRect() {
+    const { top, left, width, height } = range.getBoundingClientRect();
+    return {
+      width,
+      height,
+      top: top + window.scrollY,
+      left: left + window.scrollX,
+    };
+  }
+
+  const [containerRect, setContainerRect] = useState(getRangeRect());
+  
+  // Poll value range position & size and update the container on change.
+  useEffect(() => {
+    const containerRectPoll = setInterval(() => {
+      setContainerRect((prev) => {
+        const currentRect = getRangeRect();
+        const isSameRect = JSON.stringify(prev) === JSON.stringify(currentRect);
+        return isSameRect ? prev : currentRect;
+      });
+    }, 100);
+    return () => clearInterval(containerRectPoll);
+  }, []);
 
   const tempSize = useRef({});
   useLayoutEffect(() => {
@@ -150,9 +170,9 @@ export function Conversion({
     });
 
     // Ensure that the bubble doesn't overflow the document edges
-    const range = rangeExtents;
-    range.right = range.left + range.width;
-    const center = range.left + range.width / 2;
+    const container = { ...containerRect };
+    container.right = container.left + container.width;
+    const center = container.left + container.width / 2;
 
     const docWidth = ((dS = window.getComputedStyle(document.body)) => {
       const { width, paddingRight, marginRight, paddingLeft, marginLeft } = dS;
@@ -167,14 +187,14 @@ export function Conversion({
     const edgeDistance = 10;
 
     const position = {};
-    if (range.top < bubbleHeight + edgeDistance) position.top = '150%';
+    if (container.top < bubbleHeight + edgeDistance) position.top = '150%';
 
     if (center < bubbleWidth / 2 + edgeDistance) {
-      position.left = -range.left + edgeDistance;
+      position.left = -container.left + edgeDistance;
     }
 
     if (center + bubbleWidth / 2 > docWidth - edgeDistance) {
-      position.right = -(docWidth - range.right) + edgeDistance;
+      position.right = -(docWidth - container.right) + edgeDistance;
     }
     setBubblePosition(position);
   }, [autoBubbleSize]);
@@ -274,7 +294,7 @@ export function Conversion({
   return (
     <div
       className={styles.container}
-      style={{ ...rangeExtents }}
+      style={{ ...containerRect }}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={hideBubble}
     >
