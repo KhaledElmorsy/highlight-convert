@@ -4,8 +4,9 @@ import { escapeRegex } from '@util/misc';
  * Capture group names for each match target.
  * @satisfies {{[target: string]}: string}
  */
-const captureGroups = /** @type {const} */ ({
-  unit: 'unit',
+export const captureGroups = /** @type {const} */ ({
+  label: 'label',
+  fullLabel: 'fullLabel',
   numLeft: 'numLeft',
   numRight: 'numRight',
 });
@@ -13,20 +14,23 @@ const captureGroups = /** @type {const} */ ({
 /**
  * @typedef {captureGroups[keyof captureGroups]} GroupNames
  * @typedef { {[group in GroupNames]: [number, number]}} Indices Start & end (excl.) indices of the capture group
- * @typedef { {[group in GroupNames]: string}} Matches
- * @typedef {Matches & {indices: Indices}} MatchData
+ * @typedef { {[group in GroupNames]: string}} MatchedStrings
+ * @typedef {{label: string, strings: MatchedStrings, indices: Indices}} MatchData
  */
 
 /**
  * @param {string} string Input string
- * @param {string} label String to Match
+ * @param {Set<string>} labels String to Match
  * @param {boolean} caseSensetive
  * @returns {MatchData[]}
  */
-export default function matchUnit(string, label, caseSensetive = false) {
-  const escapedLabel = escapeRegex(label);
-  const labelGroup = `(?<${captureGroups.unit}>${escapedLabel}s?)`;
-  const labelMatcher = `(?<![a-z])${labelGroup}(?![a-z])`; // No adjacent letters
+export default function matchUnit(string, labels, caseSensetive = false) {
+  const normalizedLabels = new Map([...labels.values()].map(l => [l.toLowerCase(),l]));
+  const labelMatcher = (() => {
+    const labelAlternatives = [...labels.values()].map(escapeRegex).join('|')
+    const labelGroup = `(?<${captureGroups.label}>${labelAlternatives})`;
+    return `(?<![a-z])(?<${captureGroups.fullLabel}>${labelGroup}s?)(?![a-z])`; // No adjacent letters
+  })()
 
   const numberMatcher = (() => {
     const commaSeparated = '(\\d{1,3},(?=\\d))?(\\d{3},)*\\d{3}'; // 12,123 | 123,423 | 12,123,123
@@ -41,7 +45,7 @@ export default function matchUnit(string, label, caseSensetive = false) {
 
     // Alternator is greedy. Prioritize fraction to avoid the numerator being matched as an integer
     const unsigned = `${standaloneFraction}|${integer}(${mixedNumFraction}|${decimal})?`;
-    return {signed:`-?(${unsigned})`, unsigned };
+    return { signed: `-?(${unsigned})`, unsigned };
   })();
 
   const horizSpace = '[^\\S\\n\\r]'; // Match the same line only. Optional whitespace between number/unit shouldn't be new lines
@@ -66,10 +70,11 @@ export default function matchUnit(string, label, caseSensetive = false) {
   while ((match = regex.exec(string))) {
     const { indices, groups } = match;
     matches.push({
-      ...groups,
+      label: normalizedLabels.get(groups.label.toLowerCase()),
+      strings: groups,
       indices: indices.groups,
     });
-    regex.lastIndex = indices.groups.unit[1];
+    regex.lastIndex = indices.groups.fullLabel[1];
   }
   return matches;
 }

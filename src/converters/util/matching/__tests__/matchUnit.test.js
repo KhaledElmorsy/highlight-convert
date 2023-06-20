@@ -1,5 +1,5 @@
 import matchUnit from '../matchUnit';
-const unit = 'usd';
+const units = new Set(['usd']);
 
 describe('Finding Matches', () => {
   describe('Matching units:', () => {
@@ -8,7 +8,7 @@ describe('Finding Matches', () => {
 
     afterEach(() => {
       tests.forEach(([string, matchCount]) => {
-        expect(matchUnit(string, unit).length).toBe(matchCount);
+        expect(matchUnit(string, units).length).toBe(matchCount);
       });
     });
     test('No matches', () => {
@@ -59,9 +59,9 @@ describe('Finding Matches', () => {
 
     afterEach(() => {
       tests.forEach(([string, numLeft, numRight, both]) => {
-        const match = matchUnit(string, unit)[0];
-        expect(match.numLeft).toBe(numLeft ?? both);
-        expect(match.numRight).toBe(numRight ?? both);
+        const match = matchUnit(string, units)[0];
+        expect(match.strings.numLeft).toBe(numLeft ?? both);
+        expect(match.strings.numRight).toBe(numRight ?? both);
       });
     });
 
@@ -155,7 +155,7 @@ describe('Finding Matches', () => {
         ];
       });
     });
-    
+
     test('Number-Unit Separators', () => {
       tests = [
         ['111-usd', '111'], // Dash (other side would be a negative number)
@@ -173,38 +173,37 @@ describe('Finding Matches', () => {
       ];
     });
 
- 
-
     test('Numbers next to (potentially belonging to) multiple units', () => {
       tests = [];
       const string = '12 usd 10 usd 15'; // 10 can belong to either unit
-      const matches = matchUnit(string, unit);
-      expect(matches[0].numLeft).toBe('12');
-      expect(matches[0].numRight).toBe('10');
-      expect(matches[1].numLeft).toBe('10');
-      expect(matches[1].numRight).toBe('15');
+      const matches = matchUnit(string, units);
+      expect(matches[0].strings.numLeft).toBe('12');
+      expect(matches[0].strings.numRight).toBe('10');
+      expect(matches[1].strings.numLeft).toBe('10');
+      expect(matches[1].strings.numRight).toBe('15');
     });
   });
 });
 
 it('Returns the start & end (excl.) indices of the matched unit & numbers', () => {
   const string = 'test 123 usd 435';
-  const { indices } = matchUnit(string, unit)[0];
-  expect(indices.unit).toEqual([9, 12]);
+  const { indices } = matchUnit(string, units)[0];
+  expect(indices.label).toEqual([9, 12]);
+  expect(indices.fullLabel).toEqual([9, 12]);
   expect(indices.numLeft).toEqual([5, 8]);
   expect(indices.numRight).toEqual([13, 16]);
 
   // Include the 's' in indices for plural labels
   const pluralTest = 'Convert 200 USDs';
-  const { indices: pluralIndices } = matchUnit(pluralTest, unit)[0];
-  expect(pluralIndices.unit).toEqual([12, 16]);
+  const { indices: pluralIndices } = matchUnit(pluralTest, units)[0];
+  expect(pluralIndices.fullLabel).toEqual([12, 16]);
 });
 
 it('Optionally matches the units letter case', () => {
   const string = '10 kb are not 10 kB';
-  const unit = 'kB';
-  expect(matchUnit(string, unit, false).length).toBe(2);
-  const matches = matchUnit(string, unit, true);
+  const labels = new Set(['kB']);
+  expect(matchUnit(string, labels, false).length).toBe(2);
+  const matches = matchUnit(string, labels, true);
   expect(matches.length).toBe(1);
-  expect(matches[0].indices.unit[0]).toBe(17);
+  expect(matches[0].indices.fullLabel[0]).toBe(17);
 });

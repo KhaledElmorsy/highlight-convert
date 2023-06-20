@@ -1,9 +1,9 @@
 import CustomConverter from '@converters/CustomConverter';
 
 const unitMap = {
-  a: { id: 'a' },
-  b: { id: 'b' },
-  c: { id: 'c' },
+  a: { id: 'a', labels: ['a'] },
+  b: { id: 'b', labels: ['b'] },
+  c: { id: 'c', labels: ['c'] },
 };
 const units = Object.values(unitMap);
 

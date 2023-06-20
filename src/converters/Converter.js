@@ -1,4 +1,6 @@
-import matchUnit from './util/matching/matchUnit';
+import matchUnit, {
+  captureGroups as matchGroups,
+} from './util/matching/matchUnit';
 import numericQuantity from 'numeric-quantity';
 
 /**
@@ -38,6 +40,18 @@ export default class Converter {
     this.units = units;
     this.labelDefaults = labelDefaults;
     this.options = { numberSide, caseSensitive, numberRequired };
+    this.labels = new Set();
+    this.labelMap = new Map();
+    this.units.forEach((unit) => {
+      unit.labels.forEach((label) => {
+        this.labels.add(label);
+        if (!this.labelMap.has(label)) {
+          this.labelMap.set(label, [unit]);
+        } else {
+          this.labelMap.get(label).push(unit);
+        }
+      });
+    });
   }
 
   /**
@@ -71,7 +85,7 @@ export default class Converter {
 
     const { label, unit } = match;
     if (!Object.hasOwn(this.labelDefaults, label)) return true;
-    
+
     const defaultUnitID = await this.labelDefaults[label]();
     return unit.id === defaultUnitID;
   }
@@ -83,7 +97,8 @@ export default class Converter {
    */
   filterNumberless(match) {
     return (
-      match.data.numLeft !== undefined || match.data.numRight !== undefined
+      match.data.strings.numLeft !== undefined ||
+      match.data.strings.numRight !== undefined
     );
   }
 
@@ -112,38 +127,38 @@ export default class Converter {
    * @returns {Promise<Match<U>[]>>}
    */
   async match(text) {
-    /**
-     * Units:         |------US Dollar------|   |-------British Pound-------|
-     * Labels:        | |---$---|   |-USD-| |   | |------GBP------|   |-£-| |
-     * LabelMatches:  [ [{match}] , [     ] ] , [ [{match},{match}] , [   ] ]
-     * Flatten x2:              [{match:$},{match:GBP},{match:GBP}]
-     */
-    const matches = this.units.flatMap((unit) =>
-      unit.labels.flatMap((label) =>
-        matchUnit(text, label, this.options.caseSensitive).map((match) => ({
-          unit,
-          label,
-          data: match,
-        }))
-      )
-    );
+    const matches = matchUnit(text, this.labels, this.options.caseSensitive);
 
+    /** @type {UnitMatch[]} */
+    const unitMatches = matches.flatMap((match) => {
+      const { label } = match;
+      const units = this.labelMap.get(label);
+      return units.map((unit) => ({
+        unit,
+        label,
+        data: match,
+      }));
+    });
+
+    /** @type {UnitMatch[]} */
     const filteredMatches = await Promise.all(
-      matches.map(async (match) =>
+      unitMatches.map(async (match) =>
         (await this.filterMatches(match)) ? match : false
       )
     ).then((matches) => matches.filter(Boolean));
 
     const [mainNum, otherNum] = (() => {
-      const [left, right] = ['numLeft', 'numRight']; // From matchUnit()'s return type
+      const [left, right] = [matchGroups.numLeft, matchGroups.numRight];
       const leftPriority = this.options.numberSide === 'left';
       return leftPriority ? [left, right] : [right, left];
     })();
 
     const values = filteredMatches.map(({ unit, data }) => {
-      const amount = numericQuantity(data[mainNum] ?? data[otherNum] ?? 1);
+      const numString = data.strings[mainNum] ?? data.strings[otherNum] ?? 1;
+      const amount = numericQuantity(numString);
+
       // Merge match indices for the unit and relevant number
-      const range = data.indices.unit
+      const range = data.indices.fullLabel
         .concat(data.indices[mainNum] ?? data.indices[otherNum] ?? [])
         .sort((a, b) => a - b)
         .filter((_, i, arr) => i === 0 || i === arr.length - 1);

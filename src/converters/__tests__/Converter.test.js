@@ -139,7 +139,7 @@ describe('match():', () => {
 
   it('Filters matches according to Converter.filterMatches()', async () => {
     // Only return a match with 'usd'
-    converter.filterMatches = (match) => match.data.unit === 'usd';
+    converter.filterMatches = (match) => match.data.label === 'usd';
 
     expect(await converter.match(testString)).toEqual([
       expect.objectContaining({

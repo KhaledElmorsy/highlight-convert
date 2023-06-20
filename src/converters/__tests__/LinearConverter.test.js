@@ -10,9 +10,9 @@ describe('constructor()', () => {
 
 describe('convert():', () => {
   const units = {
-    usd: { id: 'usd' },
-    egp: { id: 'egp' },
-    gbp: { id: 'gbp' },
+    usd: { id: 'usd', labels: ['usd'] },
+    egp: { id: 'egp', labels: ['egp'] },
+    gbp: { id: 'gbp', labels: ['gbp'] },
   };
 
   const unitArray = Object.values(units);
