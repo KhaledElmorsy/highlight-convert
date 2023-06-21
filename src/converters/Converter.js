@@ -154,8 +154,21 @@ export default class Converter {
     })();
 
     const values = filteredMatches.map(({ unit, data }) => {
-      const numString = data.strings[mainNum] ?? data.strings[otherNum] ?? 1;
-      const amount = numericQuantity(numString);
+      const amount = (() => {
+        const numberString = data.strings[mainNum] ?? data.strings[otherNum];
+        if (numberString === undefined) return 1;
+        
+        const transformers = {
+          removeCommas: (string) => string.replaceAll(',', ''),
+        };
+
+        const processed = Object.values(transformers).reduce(
+          (str, func) => func(str),
+          numberString
+        );
+
+        return numericQuantity(processed);
+      })();
 
       // Merge match indices for the unit and relevant number
       const range = data.indices.fullLabel

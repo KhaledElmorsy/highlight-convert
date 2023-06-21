@@ -124,7 +124,35 @@ describe('match():', () => {
         }),
       ]);
     });
-  })
+  });
+
+  describe('Matches numbers with thousands separator (commas)', () => {
+    describe.each([
+      ['Positive', { negative: false }],
+      ['Negative', { negative: true }],
+    ])('%s numbers: ', (_, { negative }) => {
+      test.each([
+        ['Integers', { string: '1,000 usd', amount: 1000, range: [0, 9] }],
+        [
+          'Decimals',
+          { string: '1,000.59 usd', amount: 1000.59, range: [0, 12] },
+        ],
+        [
+          'Multiple separators',
+          { string: '1,000,500 usd', amount: 1000500, range: [0, 13] },
+        ],
+      ])('%s', async (_, { string, amount, range }) => {
+        expect(await converter.match((negative? '-' : '') + string)).toEqual([
+          expect.objectContaining({
+            value: expect.objectContaining({
+              amount: amount * (negative ? -1 : 1),
+            }),
+            range: [range[0], range[1] + (negative ? 1 : 0)],
+          }),
+        ]);
+      });
+    });
+  });
 
   it('Optionally performs case sensetive label matching', async () => {
     const string = 'match 100 usd not 100 USD';
