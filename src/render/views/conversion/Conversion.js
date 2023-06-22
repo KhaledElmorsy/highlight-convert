@@ -12,6 +12,7 @@ import { isEmptyObject } from '@util/misc';
  * @param {ValueVector<Unit>[]} props.values
  * @param {ValueVector<Unit>} props.inputValue
  * @param {ConversionRenderSettings<Unit>} props.renderSettings
+ * @param {() => void} props.hide
  */
 export function Conversion({
   range,
@@ -25,10 +26,12 @@ export function Conversion({
     featuredUnitIDs,
     groups,
   },
+  hide
 }) {
   const bubble = useRef();
   const hiddenContainerRef = useRef();
   const hoverAreaRef = useRef();
+  const containerRef = useRef();
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
@@ -286,17 +289,13 @@ export function Conversion({
   }
 
   /**
-   * Disable pointer events on the hover area for a set duration on middle-click.
    * @param {MouseEvent} event
    */
-  function toggleClickThrough(event) {
+  function hideOnMiddleClick(event) {
     if (event.button !== 1) return;
     event.preventDefault();
-    hoverAreaRef.current.style.pointerEvents = 'none';
-    setTimeout(() => {
-      if (!hoverAreaRef.current) return;
-      hoverAreaRef.current.style.pointerEvents = 'all';
-    }, 4000);
+    onAllAnimationsEnd(containerRef.current, hide)
+    containerRef.current.classList.add(styles.out)
   }
 
   return (
@@ -305,6 +304,8 @@ export function Conversion({
       style={{ ...containerRect, ...stackingPosition }}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={hideBubble}
+      onMouseDown={hideOnMiddleClick}
+      ref={containerRef}
     >
       {visible && !passBubbleSize && isEmptyObject(autoBubbleSize) ? (
         <div className={styles.hiddenContainer} ref={hiddenContainerRef}>
@@ -316,7 +317,6 @@ export function Conversion({
           visible ? styles.extendedArea : null
         }`}
         style={hoverExtensionPosition}
-        onMouseDown={toggleClickThrough}
         ref={hoverAreaRef}
       ></div>
       {visible ? (

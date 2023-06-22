@@ -15,16 +15,29 @@ function PageConversions({ conversions }) {
       document.removeEventListener('selectionchange', disable);
     };
   }, []);
+
+  const [hiddenConversions, setHiddenConversions] = useState(new Set());
+  function hideConversion(index) {
+    setHiddenConversions((set) => new Set([...set, index]));
+  }
+
   return (
     <>
       {renders
         ? conversions.map(
-            ({ domRange: range, values, inputValue, renderSettings }) => (
-              <Conversion
-                key={Date.now()}
-                {...{ range, values, inputValue, renderSettings }}
-              />
-            )
+            ({ domRange: range, values, inputValue, renderSettings }, i) =>
+              hiddenConversions.has(i) ? null : (
+                <Conversion
+                  key={i}
+                  hide={() => hideConversion(i)}
+                  {...{
+                    range,
+                    values,
+                    inputValue,
+                    renderSettings,
+                  }}
+                />
+              )
           )
         : null}
     </>
