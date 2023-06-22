@@ -16,7 +16,7 @@
 
   $maxNumWidth: 50px;
   .amountContainer {
-    width: $maxNumWidth;
+    max-width: $maxNumWidth;
     overflow: hidden;
     
     .amount {
@@ -30,9 +30,15 @@
   }
 }
   
-  &.expanded .amount {
-    margin-right: 0;
-    margin-left: auto;
+  &.expanded {
+    .amountContainer {
+      width: $maxNumWidth;
+
+      .amount {
+        margin-right: 0;
+        margin-left: auto;
+      }
+    }
   }
 
   .nameContainer {
