@@ -1,5 +1,11 @@
 /**
  * @type {Unit[]}
+ * 
+ * Manually disabled labels: 
+ * - Too Common/General
+ *   - "S" - Somalian Shilling
+ *   - "P" - Pula
+ *   - "Q" - Quetzal
  */
 export default [
   {
@@ -149,7 +155,7 @@ export default [
   {
     id: 'bwp',
     name: 'Pula',
-    labels: ['bwp', 'Pula', 'P'],
+    labels: ['bwp', 'Pula', /*'P'*/],
     symbol: { image: 'Botswana.png', alt: '🇧🇼' },
   },
   {
@@ -371,7 +377,7 @@ export default [
   {
     id: 'gtq',
     name: 'Quetzal',
-    labels: ['gtq', 'Quetzal', 'Q'],
+    labels: ['gtq', 'Quetzal', /* 'Q' */],
     symbol: { image: 'Guatemala.png', alt: '🇬🇹' },
   },
   {
@@ -773,7 +779,7 @@ export default [
   {
     id: 'sos',
     name: 'Somali Shilling',
-    labels: ['sos', 'Somali Shilling', 'S'],
+    labels: ['sos', 'Somali Shilling', /*'S'*/],
     symbol: { image: 'Somalia.png', alt: '🇸🇴' },
   },
   {
