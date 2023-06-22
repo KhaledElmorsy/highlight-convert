@@ -1,5 +1,5 @@
 import { onAllAnimationsEnd, onAllTransitionsEnd } from '@render/util';
-import { searchValues, mapUnitTemplate } from './util';
+import { searchValues, mapUnitTemplate, getStackingContext } from './util';
 import styles from './styles/Conversion.module.scss';
 import Value from './Value';
 import { useEffect, useRef, useState, useLayoutEffect } from 'preact/hooks';
@@ -33,6 +33,14 @@ export function Conversion({
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
   const [autoBubbleSize, setAutoBubbleSize] = useState({});
+
+  const [stackingPosition] = useState(() => {
+    const { zIndex, isFixed } = getStackingContext(range.startContainer);
+    return {
+      zIndex: zIndex === 'auto' ? 'auto' : parseInt(zIndex) + 1,
+      position: isFixed ? 'fixed' : 'absolute',
+    };
+  });
 
   const topConversion = (() => {
     const topUnitID =
@@ -117,7 +125,7 @@ export function Conversion({
   }
 
   const [containerRect, setContainerRect] = useState(getRangeRect());
-  
+
   // Poll value range position & size and update the container on change.
   useEffect(() => {
     const containerRectPoll = setInterval(() => {
@@ -294,7 +302,7 @@ export function Conversion({
   return (
     <div
       className={styles.container}
-      style={{ ...containerRect }}
+      style={{ ...containerRect, ...stackingPosition }}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={hideBubble}
     >
