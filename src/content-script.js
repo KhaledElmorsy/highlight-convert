@@ -3,10 +3,21 @@ import { debounce, mapSelection } from '@util/selection';
 
 /** @typedef {import('./background').Conversion}  Conversion */
 
-function getMatches() {
+let currentCall = 0;
+
+async function getMatches() {
+  // Run only when the mouse is up/released
+  if (document.querySelectorAll(':root:active').length) {
+    const id = ++currentCall;
+    await new Promise((res) => {
+      document.addEventListener('mouseup', res, { once: true });
+    });
+    if (currentCall !== id) return;
+  }
+
   const selection = window.getSelection();
 
-  if (selection.isCollapsed) return 
+  if (selection.isCollapsed) return;
 
   const { string, locations } = mapSelection(selection);
 
@@ -24,7 +35,7 @@ function getMatches() {
     const conversionsToRender = processedData.flatMap((conversions, i) =>
       conversions.flatMap((conv) => {
         const [startIndex, endIndex] = conv.range;
-        
+
         const [startPosition, endPosition] = [
           locations[startIndex],
           locations[endIndex - 1],
