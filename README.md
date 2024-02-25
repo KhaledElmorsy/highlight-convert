@@ -5,7 +5,7 @@
 [![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![OpenUI5 Web Components](https://img.shields.io/badge/OpenUI5%20Web%20Components-fe7520?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAS5AAAEuQER4c0nAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAARFJREFUOI2VkzErhVEYx3/uvSm5yCSRxWbQVbabLyA+gsFmlSx3uZLNIoOEDyAsNmWxG4xmkcXASt1+hnt0Hzq8r1+dOs//vP9/5zw9LyoFa12d+u28yIw6qF6q52qjbMBSRltUO+rRXwFN9UKd/CV4wS43uYCWeqsOZYyzYb+VQvZjQCuJ0xnzobqtrqR62B51UodVjzN9uAsfn6lVdSRoGzVglS5P9NgDmkAjaGNABzgJWr0Wi7CvAg/AfNDmgGdgnIjaTtd5Vwd+PKOIdgV4TVn9wBUwkeplirnvU6vAB1ApYYi8AaMVuo3Z/KcZYA34NkjXJd78xamZSUQ9KGFuRU9u3mfUXfUlmB7VHTO/9Sf64Fq2lFe6YwAAAABJRU5ErkJggg==)](https://sap.github.io/ui5-webcomponents/)
 
-![Logo](static/assets/images/icons/icon128.png)
+[![Logo](static/assets/images/icons/icon128.png)](https://chromewebstore.google.com/detail/highlight-convert/kgcfjfnekjpaobgkebahfbmgbbckfaco)
 
 ***Highlight** a unit, and it'll **convert** it*
 
