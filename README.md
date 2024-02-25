@@ -24,7 +24,5 @@ This *"quick afternoon project"* (**HAHA**) was a great exploration into:
 - 🏗️ Diving deeper into build tools and their underlying strategies (Vite/Rollup & AST based tree shaking 👍)
 - 🔧 Developing custom tooling to imrpove and ease the overall dev experience.
    - Who knows what year this'd release in if I hadn't gotten sick of manually reloading the extension and made a Chrome reload plugin for Rollup (and Webpack before migrating)🙃
-- ⭐⭐⭐ Being a better engineer.
-
 # Preview ![Extension Icon](/static/assets/images/icons/icon32.png)
 ![2023-06-11 20-14-43](https://github.com/KhaledElmorsy/highlight-convert/assets/96543794/a887aaeb-dc13-4c1e-a98e-8b5738cbcb3e)
