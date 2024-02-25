@@ -15,7 +15,7 @@ Believe it or not, this was inspired by a tweet. Someone tweeted a picture of Op
 I thought it was a great feature, especially since I enjoy doom-converting to my local sinking currency, and don't enjoy typing out values or searching them in new tabs to convert them, ***so here we are.***
 
 # Experience
-This *"quick afternoon project"* (**HAHA**) was a great exploration into: 
+This *"quick afternoon project"* (**ha!**) was a great exploration into: 
 - 👷 Planning, structuring and logically interconnecting the various working parts of the extension over 3 independent scripts with different dependencies. 
 - 🤯Thoughtful decision making when encountering design and architecture crossroads. (Over **many** decisions).
 - 💡 Heeding **The Call™** (AKA inspiration for new features and improving existing implementions).
