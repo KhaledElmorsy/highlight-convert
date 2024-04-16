@@ -19,9 +19,9 @@ export default async function getStoredRates() {
 
   // Source: https://github.com/fawazahmed0/currency-api
   const request =
-    'https://raw.githubusercontent.com/fawazahmed0/currency-api/1/latest/currencies/usd.min.json';
+    'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json';
   const fallbackRequest =
-    'https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/usd.min.json';
+    'https://latest.currency-api.pages.dev/v1/currencies/usd.json';
 
   const rates = await fetch(request)
     .then((res) => (res.ok ? res : fetch(fallbackRequest)))
